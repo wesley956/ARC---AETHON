@@ -1,41 +1,18 @@
 // ============================================================
 // ARC: AETHON — NEST UTILITIES
-// Helper functions for nest data normalization and defaults.
 // ============================================================
 
 import { NestData, NestSlot } from '../types/game';
 
-/**
- * Create default nest data for new saves or missing nestData.
- */
 export function createDefaultNestData(): NestData {
-  return {
-    comfort: 0,
-    style: 'basic',
-    slots: {
-      base: null,
-      comfort: null,
-      relic: null,
-    },
-    appliedUpgrades: [],
-    lastUpdatedAt: null,
-  };
+  return { comfort: 0, style: 'basic', slots: { base: null, comfort: null, relic: null }, appliedUpgrades: [], lastUpdatedAt: null };
 }
 
-/**
- * Normalize nest data from any input.
- * Handles old NestData format (base/coating/heatSource etc.) and new format.
- */
 export function normalizeNestData(input: unknown): NestData {
   const defaultNest = createDefaultNestData();
-
-  if (!input || typeof input !== 'object') {
-    return defaultNest;
-  }
+  if (!input || typeof input !== 'object') return defaultNest;
 
   const obj = input as Record<string, unknown>;
-
-  // Check if it's the new format (has 'slots' and 'comfort')
   if ('slots' in obj && typeof obj.slots === 'object' && obj.slots !== null) {
     const slots = obj.slots as Record<string, unknown>;
     return {
@@ -51,14 +28,8 @@ export function normalizeNestData(input: unknown): NestData {
     };
   }
 
-  // Old format (comfortLevel, base as string, etc.) — migrate to new
-  // Keep comfort from old format if available
   const oldComfort = typeof obj.comfortLevel === 'number' ? obj.comfortLevel : 0;
-
-  return {
-    ...defaultNest,
-    comfort: oldComfort,
-  };
+  return { ...defaultNest, comfort: oldComfort };
 }
 
 function isValidStyle(value: unknown): value is NestData['style'] {
@@ -71,24 +42,14 @@ function isValidSlot(value: unknown): boolean {
   return typeof slot.id === 'string' && typeof slot.name === 'string';
 }
 
-/**
- * Recalculate comfort from active slots.
- * This ensures comfort cannot be gamed by re-applying upgrades.
- */
 export function recalculateComfort(slots: NestData['slots']): number {
   let total = 0;
-
   if (slots.base) total += slots.base.comfortBonus;
   if (slots.comfort) total += slots.comfort.comfortBonus;
   if (slots.relic) total += slots.relic.comfortBonus;
-
   return Math.min(100, total);
 }
 
-/**
- * Determine nest style from active slots.
- * Priority: memory > warm > stone > basic
- */
 export function determineNestStyle(slots: NestData['slots']): NestData['style'] {
   if (slots.relic) return 'memory';
   if (slots.comfort) return 'warm';
@@ -96,9 +57,6 @@ export function determineNestStyle(slots: NestData['slots']): NestData['style'] 
   return 'basic';
 }
 
-/**
- * Get a descriptive text for the nest comfort level.
- */
 export function getComfortDescription(comfort: number): string {
   if (comfort >= 23) return 'O dragão descansa melhor aqui. O ninho guarda história.';
   if (comfort >= 18) return 'O dragão descansa melhor aqui. Algo no ninho guarda lembranças.';
@@ -107,9 +65,6 @@ export function getComfortDescription(comfort: number): string {
   return 'O ninho ainda é simples, mas cada material trazido de Aethon pode transformá-lo.';
 }
 
-/**
- * Get style description for display.
- */
 export function getStyleDescription(style: NestData['style']): string {
   switch (style) {
     case 'stone': return '🪨 Base estável.';

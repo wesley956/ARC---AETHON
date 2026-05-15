@@ -12,15 +12,7 @@ interface LayoutProps {
 
 export default function Layout({ children, className = '' }: LayoutProps) {
   return (
-    <div 
-      className={`
-        min-h-screen min-h-[100dvh] w-full max-w-md mx-auto 
-        flex flex-col bg-[#0a0a12] 
-        overflow-x-hidden
-        safe-area-bottom
-        ${className}
-      `}
-    >
+    <div className={`min-h-screen-safe flex flex-col container-mobile ${className}`}>
       {children}
     </div>
   );

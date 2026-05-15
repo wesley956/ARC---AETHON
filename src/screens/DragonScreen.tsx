@@ -1,293 +1,171 @@
 // ============================================================
 // ARC: AETHON — DRAGON SCREEN
-// Mobile-optimized main screen after dragon birth.
+// Mobile-optimized dragon management.
 // ============================================================
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 import Layout from '../components/Layout';
 import { useGame } from '../context/GameContext';
-import { ELEMENT_EMOJI } from '../constants/gameConstants';
 import { getDragonTypeById, getCategoryDisplayName } from '../data/dragonTaxonomy';
-import { feedDragon, getAllFoods } from '../systems/DragonCareSystem';
-import { checkInjuryRecovery, getExpeditionStatusText } from '../systems/ExpeditionSystem';
-import VitalityBar from '../components/VitalityBar';
-import FoodCard from '../components/FoodCard';
-import DiaryList from '../components/DiaryList';
+import { ELEMENT_EMOJI, FOOD_RECIPES, MAX_VITALITY } from '../constants/gameConstants';
 import CrystalDisplay from '../components/CrystalDisplay';
 import TraitDisplay from '../components/TraitDisplay';
-import FloatingNotification from '../components/FloatingNotification';
+import DiaryList from '../components/DiaryList';
+import FoodCard from '../components/FoodCard';
 import ExpeditionPanel from '../components/ExpeditionPanel';
 import MaterialDisplay from '../components/MaterialDisplay';
 import NestPanel from '../components/NestPanel';
+import FloatingNotification from '../components/FloatingNotification';
+import DebugPanel from '../components/DebugPanel';
+import { normalizeMaterialInventory } from '../utils/materials';
 
-type Tab = 'status' | 'feed' | 'nest' | 'explore' | 'diary';
-
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'status', label: 'Status', icon: '📊' },
-  { id: 'feed', label: 'Alimentar', icon: '🍖' },
-  { id: 'nest', label: 'Ninho', icon: '🏠' },
-  { id: 'explore', label: 'Explorar', icon: '🗺️' },
-  { id: 'diary', label: 'Diário', icon: '📖' },
-];
+type Tab = 'status' | 'feed' | 'expedition' | 'diary' | 'nest';
 
 export default function DragonScreen() {
   const { save, updateSave } = useGame();
-  const dragon = save?.dragonData;
-
   const [activeTab, setActiveTab] = useState<Tab>('status');
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
 
-  const dragonType = dragon ? getDragonTypeById(dragon.dragonType) : null;
-  const foods = getAllFoods();
+  const dragon = save?.dragonData;
+  if (!dragon) return null;
 
-  // Check for injury recovery on mount and periodically
-  useEffect(() => {
-    if (!dragon) return;
+  const dragonType = getDragonTypeById(dragon.dragonType);
+  const isOnExpedition = dragon.isOnExpedition;
+  const isInjured = dragon.isInjured;
+  const materials = normalizeMaterialInventory(dragon.materials);
 
-    const checkRecovery = () => {
-      const recoveredDragon = checkInjuryRecovery(dragon);
-      if (recoveredDragon !== dragon && recoveredDragon.isInjured !== dragon.isInjured) {
-        updateSave((prev) => ({
-          ...prev,
-          dragonData: recoveredDragon,
-        }));
-        setNotification({ 
-          message: `✨ ${dragon.dragonName} se recuperou completamente!`, 
-          type: 'success' 
-        });
-      }
-    };
+  const statusText = isOnExpedition ? 'Em expedição' : isInjured ? 'Recuperando' : 'Descansando';
 
-    checkRecovery();
-    const interval = setInterval(checkRecovery, 5000);
-    return () => clearInterval(interval);
-  }, [dragon, updateSave]);
+  const handleFeed = (foodId: string) => {
+    const food = FOOD_RECIPES[foodId];
+    if (!food || !dragon) return;
 
-  // Handle feeding
-  const handleFeed = useCallback((foodId: string) => {
-    if (!dragon) return;
+    const canAfford = Object.entries(food.cost).every(([element, amount]) => {
+      return (dragon.crystals[element as keyof typeof dragon.crystals] || 0) >= (amount || 0);
+    });
 
-    const isOnExpedition = dragon.isOnExpedition ?? false;
-    if (isOnExpedition) {
-      setNotification({ 
-        message: '🗺️ Ele está em expedição agora. Aguarde o retorno.', 
-        type: 'info' 
+    if (!canAfford || dragon.vitality >= MAX_VITALITY) return;
+
+    updateSave((prev) => {
+      if (!prev.dragonData) return prev;
+      const newCrystals = { ...prev.dragonData.crystals };
+      Object.entries(food.cost).forEach(([element, amount]) => {
+        newCrystals[element as keyof typeof newCrystals] -= (amount || 0);
       });
-      return;
-    }
 
-    const result = feedDragon(dragon, foodId);
+      const newVitality = Math.min(MAX_VITALITY, prev.dragonData.vitality + food.vitalityGain);
+      const newTraits = { ...prev.dragonData.personalityTraits };
+      newTraits[food.traitPush] = Math.min(1, newTraits[food.traitPush] + food.traitAmount);
 
-    if (result.success && result.newDragonData) {
-      updateSave((prev) => ({
+      return {
         ...prev,
-        dragonData: result.newDragonData!,
-      }));
-      setNotification({ message: result.message, type: 'success' });
-    } else {
-      setNotification({ message: result.message, type: 'error' });
-    }
-  }, [dragon, updateSave]);
+        dragonData: {
+          ...prev.dragonData,
+          crystals: newCrystals,
+          vitality: newVitality,
+          personalityTraits: newTraits,
+        },
+      };
+    });
 
-  // Handle dragon data update (from expedition/nest)
-  const handleDragonUpdate = useCallback((newDragonData: typeof dragon) => {
-    if (!newDragonData) return;
-    updateSave((prev) => ({
-      ...prev,
-      dragonData: newDragonData,
-    }));
-  }, [updateSave]);
+    setNotification(food.feedMessage);
+  };
 
-  // Handle notification from panels
-  const handleNotify = useCallback((message: string, type: 'success' | 'error' | 'info') => {
-    setNotification({ message, type });
-  }, []);
-
-  // If no dragon data, show safe error state
-  if (!dragon) {
-    return (
-      <Layout className="items-center justify-center px-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="text-5xl">🌑</div>
-          <h2 className="text-xl font-bold text-[#c4b5fd]">Dragão não encontrado</h2>
-          <p className="text-sm text-[#6a6a7a] max-w-xs">
-            Os dados do dragão estão ausentes no save.
-          </p>
-        </div>
-      </Layout>
-    );
-  }
-
-  // Safe fallbacks for old saves
-  const isOnExpedition = dragon.isOnExpedition ?? false;
-  const isInjured = dragon.isInjured ?? false;
-  const statusText = getExpeditionStatusText(dragon);
-  const diaryEntries = dragon.diaryEntries ?? [];
-  const crystals = dragon.crystals ?? { fire: 0, water: 0, earth: 0, air: 0, metal: 0 };
-  const personalityTraits = dragon.personalityTraits ?? { courage: 0.1, gentleness: 0.1, loyalty: 0.1, curiosity: 0.1, resilience: 0.1 };
+  const tabs: { id: Tab; label: string; emoji: string }[] = [
+    { id: 'status', label: 'Status', emoji: '🐉' },
+    { id: 'feed', label: 'Comida', emoji: '🍖' },
+    { id: 'expedition', label: 'Explorar', emoji: '🗺️' },
+    { id: 'nest', label: 'Ninho', emoji: '🏠' },
+    { id: 'diary', label: 'Diário', emoji: '📖' },
+  ];
 
   return (
-    <Layout className="flex flex-col">
-      {/* Notification */}
+    <Layout className="pb-20">
       {notification && (
-        <FloatingNotification
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
+        <FloatingNotification message={notification} type="success" onClose={() => setNotification(null)} />
       )}
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pt-4 px-4 pb-20">
-        {/* Header */}
-        <div className="flex flex-col items-center mb-5 animate-fade-in">
-          {/* Dragon Visual */}
-          <div
-            className={`text-6xl sm:text-7xl mb-3 ${isOnExpedition ? '' : 'animate-float'}`}
-            style={{
-              opacity: isOnExpedition ? 0.5 : 1,
-            }}
-          >
-            {isInjured ? '🩹' : '🐉'}
-          </div>
-
-          {/* Name */}
-          <h1 className="text-xl sm:text-2xl font-bold text-[#e8e8ec] break-words text-center">
-            {dragon.dragonName}
-          </h1>
-
-          {/* Type and Lineage */}
-          {dragonType && (
-            <div className="text-center mt-1">
-              <p className="text-sm text-[#a78bfa]">{dragonType.name}</p>
-              <p className="text-xs text-[#6a6a7a]">{getCategoryDisplayName(dragonType.category)}</p>
-            </div>
-          )}
-
-          {/* Status Badge */}
-          <div className={`
-            flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full border
-            ${isOnExpedition 
-              ? 'bg-blue-900/20 border-blue-700/50' 
-              : isInjured 
-                ? 'bg-red-900/20 border-red-700/50'
-                : 'bg-[#12121a] border-[#2a2a3a]'
-            }
-          `}>
-            <span className="text-base">
-              {isOnExpedition ? '🗺️' : isInjured ? '🩹' : ELEMENT_EMOJI[dragon.dominantElement] || '🐉'}
-            </span>
-            <span className={`text-sm ${isOnExpedition ? 'text-blue-300' : isInjured ? 'text-red-300' : 'text-[#e8e8ec]'}`}>
-              {statusText}
-            </span>
-          </div>
-
-          {/* Vitality */}
-          <div className="w-full max-w-xs mt-4">
-            <VitalityBar vitality={dragon.vitality} />
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="space-y-4 animate-fade-in pb-4" key={activeTab}>
-          {/* Status Tab */}
-          {activeTab === 'status' && (
-            <>
-              <CrystalDisplay crystals={crystals} />
-              <MaterialDisplay materials={dragon.materials} />
-              <TraitDisplay traits={personalityTraits} />
-            </>
-          )}
-
-          {/* Feed Tab */}
-          {activeTab === 'feed' && (
-            <div className="space-y-3">
-              <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">🍖</span>
-                  <h3 className="font-medium text-[#e8e8ec]">Alimentação</h3>
+      <div className="flex-1 py-4 space-y-4">
+        {activeTab === 'status' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className="text-6xl">{isInjured ? '🩹' : '🐉'}</div>
+              <h1 className="text-xl font-bold text-[#e8e8ec]">{dragon.dragonName}</h1>
+              {dragonType && (
+                <div className="space-y-1">
+                  <p className="text-sm text-[#a78bfa]">{dragonType.name}</p>
+                  <p className="text-xs text-[#6a6a7a]">{getCategoryDisplayName(dragonType.category)}</p>
                 </div>
-                <p className="text-sm text-[#6a6a7a] mb-4">
-                  Cada alimento fortalece seu dragão de formas diferentes.
-                </p>
-                <div className="space-y-3">
-                  {foods.map((food) => (
-                    <FoodCard
-                      key={food.id}
-                      recipe={food}
-                      crystals={crystals}
-                      vitality={dragon.vitality}
-                      isOnExpedition={isOnExpedition}
-                      isInjured={isInjured}
-                      onFeed={handleFeed}
-                    />
-                  ))}
-                </div>
+              )}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#12121a]/50 rounded-full border border-[#2a2a3a]/50">
+                <span>{isOnExpedition ? '🗺️' : isInjured ? '🩹' : ELEMENT_EMOJI[dragon.dominantElement] || '🐉'}</span>
+                <span className="text-xs text-[#6a6a7a]">{statusText}</span>
               </div>
             </div>
-          )}
 
-          {/* Nest Tab */}
-          {activeTab === 'nest' && (
-            <NestPanel
-              dragon={dragon}
-              onUpdate={handleDragonUpdate}
-              onNotify={handleNotify}
-            />
-          )}
+            <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-[#6a6a7a]">❤️ Vitalidade</span>
+                <span className="text-sm font-medium text-[#e8e8ec]">{Math.round(dragon.vitality * 100)}%</span>
+              </div>
+              <div className="w-full h-3 bg-[#1a1a24] rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-red-500 to-green-500 rounded-full transition-all duration-500" style={{ width: `${dragon.vitality * 100}%` }} />
+              </div>
+            </div>
 
-          {/* Explore Tab */}
-          {activeTab === 'explore' && (
-            <ExpeditionPanel
-              dragon={dragon}
-              onUpdate={handleDragonUpdate}
-              onNotify={handleNotify}
-            />
-          )}
+            <CrystalDisplay crystals={dragon.crystals} />
+            <TraitDisplay traits={dragon.personalityTraits} />
+            <MaterialDisplay materials={materials} />
+          </div>
+        )}
 
-          {/* Diary Tab */}
-          {activeTab === 'diary' && (
-            <DiaryList entries={diaryEntries} maxVisible={20} />
-          )}
-        </div>
+        {activeTab === 'feed' && (
+          <div className="space-y-4 animate-fade-in">
+            <h2 className="text-lg font-bold text-[#e8e8ec]">🍖 Alimentação</h2>
+            <CrystalDisplay crystals={dragon.crystals} compact />
+            {Object.values(FOOD_RECIPES).map((food) => (
+              <FoodCard key={food.id} food={food} crystals={dragon.crystals} onFeed={handleFeed} disabled={dragon.vitality >= MAX_VITALITY} />
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'expedition' && (
+          <div className="space-y-4 animate-fade-in">
+            <h2 className="text-lg font-bold text-[#e8e8ec]">🗺️ Expedições</h2>
+            <ExpeditionPanel />
+          </div>
+        )}
+
+        {activeTab === 'nest' && (
+          <div className="space-y-4 animate-fade-in">
+            <h2 className="text-lg font-bold text-[#e8e8ec]">🏠 Ninho</h2>
+            <NestPanel />
+          </div>
+        )}
+
+        {activeTab === 'diary' && (
+          <div className="space-y-4 animate-fade-in">
+            <h2 className="text-lg font-bold text-[#e8e8ec]">📖 Diário</h2>
+            <DiaryList entries={dragon.diaryEntries} />
+          </div>
+        )}
       </div>
 
-      {/* Fixed Tab Navigation */}
-      <nav 
-        className="
-          fixed bottom-0 left-0 right-0 
-          bg-[#0a0a12]/95 backdrop-blur-sm
-          border-t border-[#2a2a3a]/50
-          px-2 py-2 
-          safe-area-bottom
-          z-40
-        "
-        role="tablist"
-        aria-label="Navegação principal"
-      >
-        <div className="max-w-md mx-auto flex gap-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                flex-1 flex flex-col items-center gap-0.5 
-                py-2 px-1 rounded-lg
-                transition-colors min-h-[52px]
-                ${activeTab === tab.id
-                  ? 'bg-[#a78bfa]/20 text-[#a78bfa]'
-                  : 'text-[#6a6a7a] active:bg-[#1a1a24]'
-                }
-              `}
+      {/* Fixed Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#0a0a12]/95 border-t border-[#2a2a3a]/50 safe-area-bottom z-40">
+        <div className="container-mobile flex justify-around py-2">
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 min-w-[52px] transition-colors ${activeTab === tab.id ? 'text-[#a78bfa]' : 'text-[#6a6a7a]'}`}
             >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-[10px] sm:text-xs font-medium">{tab.label}</span>
+              <span className="text-lg">{tab.emoji}</span>
+              <span className="text-[10px]">{tab.label}</span>
             </button>
           ))}
         </div>
       </nav>
+
+      <DebugPanel />
     </Layout>
   );
 }

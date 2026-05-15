@@ -16,16 +16,12 @@ export interface NestUpgradeDefinition {
   description: string;
   diaryEntry: string;
   emoji: string;
-  // Future: profession tendency hint
   professionTendency?: {
     key: 'guardian' | 'forge' | 'memory';
     amount: number;
   };
 }
 
-/**
- * All available nest upgrades for MVP.
- */
 export const NEST_UPGRADES: NestUpgradeDefinition[] = [
   // --- BASE SLOT ---
   {
@@ -36,12 +32,11 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
     comfortBonus: 10,
     elementalAffinity: 'earth',
     style: 'stone',
-    description: 'Pedras antigas tornam o ninho mais firme. Ele parece dormir com menos sobressaltos.',
+    description: 'Pedras antigas tornam o ninho mais firme.',
     diaryEntry: 'Trouxe pedras antigas para o ninho. Ele as empurrou até ficarem exatamente onde queria.',
     emoji: '🪨',
     professionTendency: { key: 'guardian', amount: 1 },
   },
-
   // --- COMFORT SLOT ---
   {
     id: 'comfort_cinza_viva',
@@ -51,12 +46,11 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
     comfortBonus: 8,
     elementalAffinity: 'fire',
     style: 'warm',
-    description: 'Um calor baixo permanece no ninho, como se Ignareth ainda respirasse.',
+    description: 'Um calor baixo permanece no ninho.',
     diaryEntry: 'Um calor baixo ficou no ninho. Ele dormiu perto dele sem medo.',
     emoji: '🔥',
     professionTendency: { key: 'forge', amount: 1 },
   },
-
   // --- RELIC SLOT ---
   {
     id: 'relic_eco_memoria',
@@ -67,22 +61,16 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
     elementalAffinity: 'void',
     style: 'memory',
     description: 'O eco não faz som. Mesmo assim, o dragão parece ouvi-lo.',
-    diaryEntry: 'Coloquei um eco no ninho. Ele ficou quieto por muito tempo, como se escutasse alguém chamar.',
+    diaryEntry: 'Coloquei um eco no ninho. Ele ficou quieto por muito tempo.',
     emoji: '✨',
     professionTendency: { key: 'memory', amount: 1 },
   },
 ];
 
-/**
- * Get upgrade definitions for a specific slot type.
- */
 export function getUpgradesForSlot(slotType: NestSlotType): NestUpgradeDefinition[] {
   return NEST_UPGRADES.filter(u => u.slotType === slotType);
 }
 
-/**
- * Get a specific upgrade by ID.
- */
 export function getUpgradeById(id: string): NestUpgradeDefinition | undefined {
   return NEST_UPGRADES.find(u => u.id === id);
 }

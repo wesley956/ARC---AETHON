@@ -72,7 +72,6 @@ export interface CanStartExpeditionResult {
 export function canStartExpedition(dragonData: DragonData): CanStartExpeditionResult {
   const isOnExpedition = dragonData.isOnExpedition ?? false;
   const isInjured = dragonData.isInjured ?? false;
-
   if (isOnExpedition) return { canStart: false, reason: 'Seu dragão já está em uma expedição.' };
   if (isInjured) return { canStart: false, reason: 'Seu dragão está machucado e precisa descansar.' };
   return { canStart: true, reason: null };
@@ -148,7 +147,7 @@ function calculateRewards(layerConfig: ExpeditionLayerConfig): ExpeditionRewards
     let remaining = crystalCount;
     for (const element of elements) {
       if (remaining <= 0) break;
-      const amount = element === elements[elements.length - 1] ? remaining : randomInRange(0, remaining);
+      const amount = randomInRange(0, remaining);
       if (amount > 0) {
         crystals[element] = amount;
         remaining -= amount;
@@ -161,20 +160,17 @@ function calculateRewards(layerConfig: ExpeditionLayerConfig): ExpeditionRewards
   }
 
   if (Math.random() < layerConfig.rewards.commonMaterialChance) {
-    const commonMaterials: MaterialId[] = ['living_ash', 'ancient_stone'];
-    const chosen = commonMaterials[Math.floor(Math.random() * commonMaterials.length)];
-    materials[chosen] = (materials[chosen] || 0) + 1;
+    const commonMats: MaterialId[] = ['living_ash', 'ancient_stone'];
+    const mat = commonMats[Math.floor(Math.random() * commonMats.length)];
+    materials[mat] = (materials[mat] || 0) + 1;
   }
-
   if (Math.random() < layerConfig.rewards.uncommonMaterialChance) {
     materials.shell_fragment = (materials.shell_fragment || 0) + 1;
   }
-
   if (Math.random() < layerConfig.rewards.rareMaterialChance) {
     materials.memory_echo = (materials.memory_echo || 0) + 1;
     foundMemoryEcho = true;
   }
-
   if (layerConfig.injuryChance > 0 && Math.random() < layerConfig.injuryChance) {
     wasInjured = true;
   }
@@ -202,75 +198,52 @@ export function collectExpeditionRewards(dragonData: DragonData): CollectExpedit
 
   const layerConfig = getLayerConfig(zoneId, layerId);
   if (!layerConfig) {
-    return { success: false, message: 'Configuração de camada inválida.' };
+    return { success: false, message: 'Configuração de camada não encontrada.' };
   }
 
   const rewards = calculateRewards(layerConfig);
-  const existingDiaryEntries = dragonData.diaryEntries ?? [];
-  const currentDay = calculateCurrentDay(existingDiaryEntries);
-
-  // Apply crystal rewards
-  const newCrystals = { ...dragonData.crystals };
+  const existingCrystals = dragonData.crystals ?? { fire: 0, water: 0, earth: 0, air: 0, metal: 0 };
+  const newCrystals: CrystalInventory = { ...existingCrystals };
   for (const [element, amount] of Object.entries(rewards.crystals)) {
     const key = element as keyof CrystalInventory;
     newCrystals[key] = (newCrystals[key] || 0) + (amount || 0);
   }
 
-  // Apply material rewards (normalize first)
   const existingMaterials = normalizeMaterialInventory(dragonData.materials);
   const newMaterials = addMaterials(existingMaterials, rewards.materials);
 
-  // Handle injury
-  let newIsInjured = dragonData.isInjured ?? false;
-  let newRecoveryTime = dragonData.recoveryTime ?? null;
-  if (rewards.wasInjured) {
-    newIsInjured = true;
-    newRecoveryTime = Date.now() + getInjuryRecoveryTime();
-  }
-
-  // Create diary entry
-  const diaryText = rewards.wasInjured
-    ? `Dia ${currentDay} — ${layerConfig.injuryDiaryEntry || layerConfig.diaryEntry}`
-    : `Dia ${currentDay} — ${layerConfig.diaryEntry}`;
-
+  const existingDiaryEntries = dragonData.diaryEntries ?? [];
+  const currentDay = calculateCurrentDay(existingDiaryEntries);
+  const diaryText = rewards.wasInjured ? layerConfig.injuryDiaryEntry : layerConfig.diaryEntry;
   const newDiaryEntry: DiaryEntry = {
     id: generateId('diary'),
     dayNumber: currentDay,
-    text: diaryText,
+    text: `Dia ${currentDay} — ${diaryText}`,
     timestamp: Date.now(),
     category: 'expedition',
   };
 
-  const newDiaryEntries = [...existingDiaryEntries, newDiaryEntry];
-
-  // If memory echo found, add special entry
-  if (rewards.foundMemoryEcho) {
-    const memoryEntry: DiaryEntry = {
-      id: generateId('diary'),
-      dayNumber: currentDay,
-      text: `Dia ${currentDay} — Encontrei algo estranho. Não sei se é uma pedra ou uma lembrança.`,
-      timestamp: Date.now() + 1,
-      category: 'memory',
-    };
-    newDiaryEntries.push(memoryEntry);
-  }
-
-  const newDragonData: DragonData = {
+  let newDragonData: DragonData = {
     ...dragonData,
+    crystals: newCrystals,
+    materials: newMaterials,
     isOnExpedition: false,
-    expeditionEndTime: null,
     expeditionZoneId: null,
     expeditionLayerId: null,
     expeditionStartTime: null,
-    crystals: newCrystals,
-    materials: newMaterials,
-    isInjured: newIsInjured,
-    recoveryTime: newRecoveryTime,
-    diaryEntries: newDiaryEntries,
+    expeditionEndTime: null,
+    diaryEntries: [...existingDiaryEntries, newDiaryEntry],
   };
 
-  // Build reward message
-  let rewardMessage = `🏛️ ${dragonData.dragonName} voltou!`;
+  if (rewards.wasInjured) {
+    newDragonData = {
+      ...newDragonData,
+      isInjured: true,
+      recoveryTime: Date.now() + getInjuryRecoveryTime(),
+    };
+  }
+
+  let rewardMessage = `🎒 ${dragonData.dragonName} retornou!`;
   const crystalParts: string[] = [];
   for (const [element, amount] of Object.entries(rewards.crystals)) {
     if ((amount || 0) > 0) {
