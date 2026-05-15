@@ -1,0 +1,517 @@
+# ARC: AETHON — PROMPT 5
+## Implementar Tela do Dragão, Alimentação Básica e Diário Inicial
+
+Você está trabalhando no projeto Arc: Aethon.
+
+A fundação do projeto já existe.
+O sistema de Orbs e Absorção já foi implementado e corrigido.
+A Cena de Nascimento já foi implementada e corrigida.
+O DragonTypeResolver já resolve tipos válidos da Taxonomia Dracônica.
+O nascimento já cria dragonData, diário Dia 1 e transforma o save de ovo para dragão de forma irreversível.
+
+Agora a missão é implementar o primeiro loop funcional da fase do dragão.
+
+IMPORTANTE:
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere o sistema de Orbs e Absorção.
+Não altere a Cena de Nascimento, exceto se for estritamente necessário para integração.
+Não implemente expedições ainda.
+Não implemente ninho completo ainda.
+Não implemente profissões completas ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+
+Sua missão é implementar apenas:
+
+TELA DO DRAGÃO + ALIMENTAÇÃO BÁSICA + DIÁRIO INICIAL.
+
+---
+
+# FONTE DA VERDADE
+
+O projeto deve obedecer à ARC: AETHON — Game Flow Bible v1.2.
+
+Regras centrais:
+
+- Uma conta = um ovo ou um dragão, nunca os dois.
+- Depois do nascimento, o ovo deixa de existir.
+- A DragonScreen é a tela principal quando hasDragon = true.
+- O dragão é único e deve criar vínculo com o jogador.
+- Alimentação deve aumentar vitalidade e influenciar traços.
+- Diário deve registrar memórias narrativas, não logs técnicos.
+- Expedições, ninho e profissões existem, mas NÃO devem ser implementados completamente neste prompt.
+- Limiar e Convergência continuam apenas como estrutura/taxonomia.
+
+---
+
+# OBJETIVO
+
+Transformar a DragonScreen de placeholder em uma tela funcional inicial com:
+
+1. Exibição do dragão nascido.
+2. Nome do dragão.
+3. Tipo/linhagem do dragão.
+4. Elemento dominante.
+5. Vitalidade.
+6. Cristais disponíveis.
+7. Materiais disponíveis, se já existirem no modelo.
+8. Traços de personalidade iniciais.
+9. Alimentação básica com 3 comidas.
+10. Consumo de cristais ao alimentar.
+11. Aumento de vitalidade.
+12. Influência simples em traços/tendências.
+13. Notificações/flutuantes ou feedback visual simples.
+14. Diário inicial visível.
+15. Nova entrada de diário opcional ao alimentar.
+16. Preparação visual para expedições futuras, sem implementar envio.
+
+---
+
+# TELA DO DRAGÃO
+
+A DragonScreen deve mostrar, de forma clara:
+
+- nome do dragão;
+- tipo do dragão;
+- elemento dominante;
+- vitalidade;
+- traços de personalidade;
+- cristais;
+- diário;
+- seção de alimentação;
+- seção bloqueada/placeholder de expedições futuras.
+
+Se houver função getDragonTypeById em dragonTaxonomy.ts, usar para exibir:
+
+- nome da linhagem;
+- categoria;
+- elementos;
+- descrição/lore curta, se existir.
+
+Se o tipo não for encontrado, usar fallback visual seguro:
+"Dragão Desconhecido"
+
+Mas não deve quebrar o app.
+
+---
+
+# VITALIDADE
+
+A vitalidade deve ser um número entre 0 e 1.
+
+Exibir como porcentagem:
+
+vitality * 100
+
+Exemplo:
+
+Vitalidade: 85%
+
+Se alimentar, aumentar vitalidade, com máximo 1.
+
+Exemplo:
+
+newVitality = Math.min(1, currentVitality + FOOD_VITALITY_GAIN)
+
+Criar constante se ainda não existir:
+
+FOOD_VITALITY_GAIN = 0.15
+
+Ou usar valor semelhante já existente no projeto.
+
+---
+
+# CRISTAIS
+
+O MVP deve trabalhar com cristais elementais.
+
+Se o projeto já usa um formato de crystals, respeitar o formato existente.
+
+Preferência de estrutura:
+
+crystals = {
+  fire: number,
+  water: number,
+  earth: number,
+  air?: number,
+  metal?: number
+}
+
+Se o projeto usa number simples, adaptar com cuidado sem quebrar tipos.
+
+Para este prompt, a alimentação usa:
+
+- Cristal de Fogo
+- Cristal de Água
+- Cristal de Terra
+
+Se ainda não houver cristais suficientes para testar, o DebugPanel DEV ONLY pode ter uma opção de adicionar cristais de teste, desde que seja claramente DEV ONLY e não pareça recurso do jogo.
+
+Não criar compra de cristais.
+Não criar monetização.
+
+---
+
+# COMIDAS MVP
+
+Implementar 3 comidas:
+
+## 1. Brasa Crocante
+
+Custo:
+
+- Cristal de Fogo x1
+
+Efeito:
+
+- +vitalidade
+- empurra traço/tendência para Corajoso
+
+Mensagem:
+
+"🔥 Ele devorou a Brasa Crocante com olhos acesos."
+
+## 2. Caldo das Marés
+
+Custo:
+
+- Cristal de Água x1
+
+Efeito:
+
+- +vitalidade
+- empurra traço/tendência para Gentil
+
+Mensagem:
+
+"💧 Ele bebeu devagar. Por um instante, tudo pareceu mais calmo."
+
+## 3. Raiz Dourada
+
+Custo:
+
+- Cristal de Terra x1
+
+Efeito:
+
+- +vitalidade
+- empurra traço/tendência para Leal
+
+Mensagem:
+
+"🌍 Ele mastigou a Raiz Dourada e se deitou mais perto de você."
+
+---
+
+# PERSONALIDADE / TRAÇOS
+
+Não implementar o sistema completo de personalidade ainda.
+
+Mas preparar estrutura simples.
+
+Se o projeto já possui personalityTraits, usar.
+
+Se for array de traits:
+
+- adicionar ou reforçar o traço correspondente;
+- evitar duplicatas desnecessárias.
+
+Se for estrutura de tendências:
+
+- incrementar tendência correspondente.
+
+Traços mínimos:
+
+- Brave / Corajoso
+- Gentle / Gentil
+- Loyal / Leal
+- Curious / Curioso
+- Cautious / Cauteloso
+
+Para este prompt:
+
+- Brasa Crocante → Brave
+- Caldo das Marés → Gentle
+- Raiz Dourada → Loyal
+
+Não criar tela complexa de personalidade.
+Apenas mostrar traços atuais e preparar dados para futuro.
+
+---
+
+# ALIMENTAÇÃO — REGRAS
+
+Ao clicar em uma comida:
+
+1. Verificar se o dragão existe.
+2. Verificar se há cristal suficiente.
+3. Se não houver cristal:
+   - não alimentar;
+   - mostrar mensagem:
+     "Você não tem cristais suficientes para preparar esta comida."
+4. Se houver:
+   - consumir 1 cristal do elemento correto;
+   - aumentar vitalidade;
+   - aplicar tendência/traço;
+   - salvar;
+   - mostrar mensagem narrativa da comida;
+   - opcionalmente criar entrada curta no diário.
+
+---
+
+# DIÁRIO
+
+O diário já deve conter a entrada Dia 1 criada no nascimento:
+
+"Dia 1 — Ele abriu os olhos pela primeira vez. Me olhou. Não tinha medo."
+
+A DragonScreen deve permitir ver as entradas do diário.
+
+Pode ser:
+
+- seção na própria tela;
+- card expansível;
+- lista simples;
+- modal simples.
+
+Não precisa criar tela separada complexa ainda, a menos que já exista DiaryView.
+
+O diário deve exibir:
+
+- texto;
+- data ou dia, se disponível;
+- categoria/tipo, se disponível.
+
+---
+
+# ENTRADAS DE DIÁRIO APÓS ALIMENTAÇÃO
+
+Não registrar toda ação de forma repetitiva demais.
+
+Para este prompt, pode criar entrada de diário apenas quando:
+
+- é a primeira vez que o dragão come uma comida específica;
+ou
+- com chance simples;
+ou
+- sempre, se for mais simples, mas com texto narrativo.
+
+Sugestão simples:
+Registrar sempre por enquanto, mas com textos narrativos curtos.
+
+Entradas:
+
+Brasa Crocante:
+"Dia [X] — Provei fogo hoje. Não queimou. Parecia familiar."
+
+Caldo das Marés:
+"Dia [X] — Bebi algo frio e antigo. Senti o mundo ficar quieto."
+
+Raiz Dourada:
+"Dia [X] — A raiz tinha gosto de pedra e sol. Fiquei perto dele depois."
+
+Se ainda não houver cálculo de dia, usar data ISO ou dayNumber simples.
+
+Não escrever entradas como:
+"+15% vitalidade"
+ou
+"Consumiu cristal"
+
+O diário deve ser emocional/narrativo.
+
+---
+
+# FEEDBACK VISUAL
+
+A DragonScreen deve ter feedback simples ao alimentar:
+
+- notificação flutuante;
+- ou mensagem no topo;
+- ou card temporário.
+
+Pode reaproveitar FloatingNotification se já existir.
+
+Mensagens importantes:
+
+- alimentação bem-sucedida;
+- cristal insuficiente;
+- vitalidade máxima;
+- erro seguro se dragonData estiver ausente.
+
+---
+
+# DRAGONSCREEN SEM DRAGONDATA
+
+Se DragonScreen abrir sem dragonData válido:
+
+- não crashar;
+- mostrar mensagem segura;
+- não criar dragão automaticamente;
+- não criar ovo;
+- orientar que o save está inconsistente;
+- se existir fluxo de InvalidSaveScreen, usar ou orientar para estado de proteção.
+
+Não resetar automaticamente.
+
+---
+
+# PREPARAÇÃO PARA EXPEDIÇÕES FUTURAS
+
+Adicionar uma seção visual simples:
+
+"Expedições"
+
+Com texto:
+
+"As Ruínas de Ignareth serão abertas em breve."
+
+Botão desabilitado:
+
+"Enviar em expedição"
+
+Não implementar envio.
+Não implementar timer.
+Não implementar recompensas.
+Não implementar lesão.
+Não implementar notificações de expedição ainda.
+
+Isso será Prompt 6.
+
+---
+
+# PREPARAÇÃO PARA NINHO FUTURO
+
+Se couber sem complexidade, exibir uma seção pequena:
+
+"Ninho"
+
+Texto:
+
+"O ninho ainda é simples. Materiais de expedição poderão transformá-lo."
+
+Não implementar edição de ninho.
+Não implementar slots reais ainda se isso exigir muita alteração.
+
+Isso será prompt futuro.
+
+---
+
+# ARQUIVOS QUE PROVAVELMENTE SERÃO ALTERADOS
+
+Você provavelmente vai mexer em:
+
+- src/screens/DragonScreen.tsx
+- src/context/GameContext.tsx
+- src/types/game.ts
+- src/constants/gameConstants.ts
+- src/data/dragonTaxonomy.ts, apenas se necessário
+- src/components/FloatingNotification.tsx, se reutilizar
+- src/components/DebugPanel.tsx, apenas para adicionar cristais DEV ONLY se necessário
+
+Talvez criar:
+
+- src/data/foods.ts
+- src/components/VitalityBar.tsx
+- src/components/FoodCard.tsx
+- src/components/DiaryList.tsx
+- src/systems/DragonCareSystem.ts
+
+Não altere arquivos desnecessários.
+
+---
+
+# CUIDADOS TÉCNICOS
+
+- Não mutar save diretamente.
+- Usar updateSave ou função equivalente do GameContext.
+- Não criar estado inválido.
+- Não permitir hasEgg e hasDragon true ao mesmo tempo.
+- Não recriar eggData.
+- Não voltar para EggScreen.
+- Não criar segundo ovo.
+- Não implementar reset público.
+- Não criar compra de recursos.
+- Não implementar expedição real.
+- Não implementar ninho completo.
+- Não implementar profissão completa.
+- Não mexer em Limiar global.
+- Não criar Convergência jogável.
+- Preservar Orbs/Absorção.
+- Preservar HatchScreen.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- abrir DragonScreen após o nascimento;
+- exibir nome do dragão;
+- exibir tipo/linhagem;
+- exibir elemento dominante;
+- exibir vitalidade;
+- exibir cristais;
+- exibir traços;
+- exibir diário Dia 1;
+- permitir alimentar com Brasa Crocante se houver cristal de fogo;
+- permitir alimentar com Caldo das Marés se houver cristal de água;
+- permitir alimentar com Raiz Dourada se houver cristal de terra;
+- bloquear alimentação sem cristal suficiente;
+- consumir cristal correto;
+- aumentar vitalidade sem passar de 1;
+- aplicar tendência/traço simples;
+- criar feedback narrativo;
+- salvar alterações;
+- persistir após recarregar a página;
+- não implementar expedições ainda;
+- não quebrar nascimento;
+- não quebrar save;
+- não criar segundo ovo.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Criar novo save.
+2. Avançar até nascimento usando fluxo normal ou DebugPanel DEV ONLY.
+3. Nomear o dragão.
+4. Confirmar que DragonScreen abre.
+5. Verificar nome, tipo e vitalidade.
+6. Adicionar cristais via DebugPanel DEV ONLY, se necessário.
+7. Alimentar com cada comida.
+8. Confirmar que o cristal correto diminui.
+9. Confirmar que a vitalidade aumenta.
+10. Confirmar que o diário exibe Dia 1 e novas entradas.
+11. Recarregar a página.
+12. Confirmar que os dados persistem.
+13. Confirmar que o jogo não volta para EggScreen.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como a DragonScreen funciona.
+3. Como a alimentação funciona.
+4. Como os cristais são consumidos.
+5. Como o diário é exibido.
+6. Como testar alimentação.
+7. O que ficou preparado para o próximo prompt.

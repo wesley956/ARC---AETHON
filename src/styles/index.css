@@ -1,0 +1,242 @@
+@import "tailwindcss";
+
+@theme {
+  --color-aethon-bg: #0a0a1a;
+  --color-aethon-surface: #12122a;
+  --color-aethon-card: #1a1a3a;
+  --color-aethon-border: #2a2a5a;
+  --color-aethon-text: #e0e0f0;
+  --color-aethon-muted: #8888aa;
+  --color-aethon-accent: #7c5cbf;
+  --color-aethon-fire: #ff6b35;
+  --color-aethon-water: #3b82f6;
+  --color-aethon-earth: #8b6914;
+  --color-aethon-air: #a0d2db;
+  --color-aethon-metal: #9ca3af;
+  --color-aethon-void: #4a0e4e;
+  --color-aethon-glow: #c084fc;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-aethon-bg);
+  color: var(--color-aethon-text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Prevent scroll during drag */
+body.dragging {
+  overflow: hidden;
+  touch-action: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Orbit animation for orbs around the egg */
+@keyframes orbit {
+  from {
+    transform: rotate(var(--angle-offset, 0deg)) translateX(var(--orbit-radius, 70px)) rotate(calc(-1 * var(--angle-offset, 0deg)));
+  }
+  to {
+    transform: rotate(calc(360deg + var(--angle-offset, 0deg))) translateX(var(--orbit-radius, 70px)) rotate(calc(-360deg - var(--angle-offset, 0deg)));
+  }
+}
+
+/* Counter rotation to keep orb content upright */
+@keyframes counter-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+/* Absorption progress ring */
+@keyframes absorption-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(192, 132, 252, 0.8);
+  }
+}
+
+/* Absorption complete burst */
+@keyframes absorption-burst {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.5);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Egg highlight when orb is over it */
+@keyframes egg-highlight {
+  0%, 100% { 
+    filter: brightness(1) drop-shadow(0 0 10px rgba(192, 132, 252, 0.3));
+  }
+  50% { 
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(192, 132, 252, 0.6));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* === HATCH SCENE ANIMATIONS === */
+
+/* Egg shake/tremble */
+@keyframes egg-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-3px) rotate(-2deg); }
+  20% { transform: translateX(3px) rotate(2deg); }
+  30% { transform: translateX(-3px) rotate(-1deg); }
+  40% { transform: translateX(3px) rotate(1deg); }
+  50% { transform: translateX(-2px) rotate(-2deg); }
+  60% { transform: translateX(2px) rotate(2deg); }
+  70% { transform: translateX(-2px) rotate(-1deg); }
+  80% { transform: translateX(2px) rotate(1deg); }
+  90% { transform: translateX(-1px) rotate(0deg); }
+}
+
+.animate-egg-shake {
+  animation: egg-shake 0.5s ease-in-out infinite;
+}
+
+/* Cracks appearing */
+@keyframes crack-appear {
+  from { 
+    opacity: 0; 
+    transform: scale(0.8);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+}
+
+.animate-crack-appear {
+  animation: crack-appear 0.3s ease-out forwards;
+}
+
+/* Elemental pulse glow */
+@keyframes elemental-pulse {
+  0%, 100% { 
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+.animate-elemental-pulse {
+  animation: elemental-pulse 0.8s ease-in-out infinite;
+}
+
+/* Burst/explosion effect */
+@keyframes hatch-burst {
+  0% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.8);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+.animate-hatch-burst {
+  animation: hatch-burst 1s ease-out forwards;
+}
+
+/* Screen flash */
+@keyframes screen-flash {
+  0% { opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+.animate-screen-flash {
+  animation: screen-flash 0.8s ease-out forwards;
+}
+
+/* Dragon reveal */
+@keyframes dragon-reveal {
+  from { 
+    opacity: 0; 
+    transform: scale(0.5) translateY(20px);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dragon-reveal {
+  animation: dragon-reveal 0.8s ease-out forwards;
+}
+
+/* Text fade in slow */
+@keyframes text-fade-in {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
+}
+
+.animate-text-fade-in {
+  animation: text-fade-in 0.6s ease-out forwards;
+}
+
+.animate-egg-highlight {
+  animation: egg-highlight 0.5s ease-in-out infinite;
+}
+
+.animate-absorption-pulse {
+  animation: absorption-pulse 0.8s ease-in-out infinite;
+}

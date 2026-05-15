@@ -1,0 +1,259 @@
+# ARC: AETHON — PROMPT 3.1
+## Correções finas do sistema de Orbs e Absorção
+
+Você está trabalhando no projeto Arc: Aethon.
+
+O sistema completo de Orbs e Absorção já foi implementado no Prompt 3.
+
+IMPORTANTE:
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não implemente nascimento completo ainda.
+Não implemente dragão completo ainda.
+Não implemente expedições ainda.
+Não implemente ninho ainda.
+Não implemente profissões ainda.
+Não implemente monetização real.
+Não mude a identidade geral da tela.
+
+Sua missão é apenas corrigir estabilidade, UX e pequenos bugs do sistema de Orbs e Absorção.
+
+---
+
+# CONTEXTO
+
+A EggScreen agora possui:
+
+- orbs no tray;
+- drag and drop com pointer events;
+- orbs orbitando o ovo;
+- hold de 2 segundos para absorção;
+- aplicação de energia elemental;
+- Vazio passivo;
+- maturação;
+- botão “Absorção”;
+- notificações flutuantes;
+- transição para HatchScene.
+
+O sistema está bom, mas precisa de correções finas antes de avançar para a cena de nascimento.
+
+---
+
+# CORREÇÕES OBRIGATÓRIAS
+
+## 1. Corrigir pointercancel no DraggableOrb
+
+Atualmente, quando ocorre pointercancel, o componente limpa apenas o estado local do orb.
+
+Isso pode deixar a EggScreen achando que ainda está arrastando.
+
+Corrigir criando uma prop, por exemplo:
+
+onDragCancel?: () => void
+
+ou usando uma função equivalente.
+
+Quando pointercancel acontecer:
+
+- limpar estado local;
+- liberar pointer capture com segurança;
+- chamar onDragCancel;
+- a EggScreen deve executar:
+  - setIsDragging(false);
+  - setIsOverEgg(false);
+  - remover estado de drag visual;
+  - permitir scroll novamente.
+
+Critério:
+Se o drag for cancelado por mobile/browser, a tela não pode ficar travada em modo dragging.
+
+---
+
+## 2. Proteger releasePointerCapture
+
+Antes de chamar releasePointerCapture, verificar se é seguro.
+
+Usar algo como:
+
+if (target.hasPointerCapture(e.pointerId)) {
+  target.releasePointerCapture(e.pointerId);
+}
+
+Critério:
+Não pode gerar erro caso o elemento não tenha mais captura do pointer.
+
+---
+
+## 3. Aumentar área de drop do ovo
+
+Hoje a área de drop usa raio pequeno demais para mobile.
+
+Aumentar a área de detecção para aproximadamente:
+
+const EGG_DROP_RADIUS = 110;
+
+Criar constante local ou em gameConstants.ts.
+
+Critério:
+Soltar o orb perto do ovo deve funcionar de forma confortável em mobile.
+
+---
+
+## 4. Padronizar timer para HH:MM:SS
+
+Atualizar formatTimeRemaining para mostrar:
+
+HH:MM:SS
+
+Exemplos:
+
+01:43:22
+00:12:08
+00:00:45
+
+Se o timer estiver pronto:
+
+Pronto!
+
+Critério:
+O texto da EggScreen deve ficar:
+
+Próximo orb em: 01:43:22
+
+---
+
+## 5. Mostrar “Tray cheio” quando o limite de orbs for atingido
+
+Se:
+
+egg.availableOrbs.length >= ORB_TRAY_MAX
+
+Então a tela não deve mostrar “Pronto!” como se houvesse orb para gerar.
+
+Mostrar:
+
+Tray cheio
+
+ou:
+
+Limite de orbs atingido
+
+Critério:
+Quando o tray estiver com 8/8 orbs, o jogador entende que precisa usar orbs antes de receber mais.
+
+---
+
+## 6. Limpar checagem duplicada de nascimento
+
+Hoje a transição para HatchScene funciona pelo useEffect que observa:
+
+egg.maturationProgress >= MATURATION_HATCH_THRESHOLD
+
+Mantenha essa lógica.
+
+Mas dentro de completeAbsorption, evite depender de save antigo do closure para decidir nascimento.
+
+Pode fazer de uma destas formas:
+
+Opção A:
+- Remover a checagem manual com setTimeout;
+- Deixar apenas o useEffect navegar quando a maturação atualizar.
+
+Opção B:
+- Calcular newMaturation dentro do updater;
+- usar uma flag segura local para navegar depois.
+
+Preferência:
+Use a Opção A se for mais simples.
+
+Critério:
+Quando maturação chegar a 100%, o jogador ainda deve ir para HatchScene normalmente.
+
+---
+
+## 7. Melhorar texto do botão Absorção
+
+Manter o nome:
+
+Absorção
+
+Mas atualizar o texto auxiliar para ficar exatamente:
+
+O ovo ainda pulsa com energia. Uma segunda Absorção é possível…
+
+Ao clicar, mostrar:
+
+Absorção real será conectada ao sistema de anúncios futuramente.
+
+Não implementar anúncio real.
+Não dobrar ganhos ainda.
+
+---
+
+# O QUE NÃO MEXER
+
+Não alterar:
+
+- regra uma conta = um ovo ou dragão;
+- Limiar;
+- Convergência;
+- Taxonomia Dracônica;
+- SaveManager;
+- GameStateValidator, exceto se for extremamente necessário;
+- sistema de nascimento completo;
+- dragão;
+- expedições;
+- ninho;
+- profissões;
+- monetização real.
+
+Não criar:
+
+- reset público;
+- segundo ovo;
+- ritual diário como mecânica principal;
+- orbs de Ar ou Metal no MVP;
+- anúncio real.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- manter o sistema de orbs funcionando;
+- permitir drag normalmente;
+- limpar estado corretamente em pointercancel;
+- não travar scroll após cancelamento de drag;
+- soltar orb no ovo com área confortável;
+- manter limite de 5 orbs no ovo;
+- manter limite de 8 orbs no tray;
+- mostrar timer em HH:MM:SS;
+- mostrar “Tray cheio” quando o tray estiver em 8/8;
+- absorver orbs corretamente;
+- navegar para HatchScene quando maturação chegar a 100%;
+- manter botão “Absorção” com texto correto;
+- não implementar sistemas futuros.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. O que foi corrigido no drag/cancelamento.
+3. Como ficou o timer.
+4. Como testar o tray cheio.
+5. Como testar a transição para HatchScene.
+6. Se o build passou.

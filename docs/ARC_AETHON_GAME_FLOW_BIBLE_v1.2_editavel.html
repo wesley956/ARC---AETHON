@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARC: AETHON — Game Flow Bible v1.2</title>
+<style>
+:root{
+  --bg:#040711;--bg2:#0A1020;--panel:#111827;--glass:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.13);--text:#EDE8DC;--muted:#9b9488;
+  --gold:#F0D080;--gold2:#C9A84C;--fire:#FF6B35;--water:#4AABFF;
+  --earth:#D4A843;--void:#8B5CF6;--teal:#5dd7b5;--danger:#ff8b7d;
+  --shadow:0 24px 70px rgba(0,0,0,.45);--radius:20px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;
+  background:radial-gradient(circle at 15% 0,rgba(255,107,53,.20),transparent 25rem),
+  radial-gradient(circle at 88% 5%,rgba(139,92,246,.24),transparent 26rem),
+  radial-gradient(circle at 50% 100%,rgba(74,171,255,.14),transparent 30rem),
+  linear-gradient(180deg,var(--bg2),var(--bg) 48%,#01020a);min-height:100vh
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:
+linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:58px 58px;
+mask-image:linear-gradient(to bottom,#000,transparent 75%)}
+body.editing [data-editable]{outline:1px dashed rgba(240,208,128,.7);outline-offset:4px;border-radius:8px;background:rgba(240,208,128,.06)}
+body.editing [data-editable]:focus{outline:2px solid var(--gold);background:rgba(240,208,128,.11)}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:310px minmax(0,1fr);gap:22px;max-width:1440px;margin:0 auto;padding:22px}
+.side{position:sticky;top:18px;height:calc(100vh - 36px);overflow:auto;border:1px solid var(--border);border-radius:var(--radius);background:rgba(17,24,39,.78);backdrop-filter:blur(18px);box-shadow:var(--shadow);padding:18px}
+.brand{padding:12px 12px 16px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.eye{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);font-weight:800;margin-bottom:8px}
+h1{font-family:Georgia,serif;font-size:25px;line-height:1.05;margin:0}
+.ver{font-size:12px;color:var(--muted);line-height:1.5;margin-top:9px}
+.tools{display:grid;gap:8px;margin:14px 0}
+button{border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.06);color:var(--text);font-weight:800;font-size:12px;padding:9px 12px;cursor:pointer;transition:.15s}
+button:hover{transform:translateY(-1px);border-color:rgba(240,208,128,.45);background:rgba(240,208,128,.1)}
+.primary{background:linear-gradient(180deg,rgba(240,208,128,.25),rgba(201,168,76,.13));border-color:rgba(240,208,128,.48)}
+.danger{background:rgba(255,139,125,.1);border-color:rgba(255,139,125,.35)}
+.search{width:100%;border:1px solid var(--border);border-radius:999px;background:rgba(0,0,0,.22);color:var(--text);padding:10px 12px;outline:0;margin-bottom:12px}
+.nav{display:grid;gap:6px}
+.nav button{text-align:left;border-radius:13px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.nav button.active{border-color:rgba(240,208,128,.55);background:rgba(240,208,128,.12);color:#fff1bd}
+.dot{width:9px;height:9px;border-radius:99px;display:inline-block;margin-right:5px}.fire{background:var(--fire);box-shadow:0 0 12px var(--fire)}.water{background:var(--water);box-shadow:0 0 12px var(--water)}.earth{background:var(--earth);box-shadow:0 0 12px var(--earth)}.void{background:var(--void);box-shadow:0 0 12px var(--void)}.gold{background:var(--gold);box-shadow:0 0 12px var(--gold)}.teal{background:var(--teal);box-shadow:0 0 12px var(--teal)}
+.hero,.sec{border:1px solid var(--border);border-radius:28px;background:rgba(17,24,39,.66);backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+.hero{padding:32px;margin-bottom:22px;background:radial-gradient(circle at 15% 0,rgba(255,107,53,.17),transparent 18rem),radial-gradient(circle at 95% 0,rgba(139,92,246,.20),transparent 20rem),rgba(17,24,39,.7)}
+.hero h2{font-family:Georgia,serif;font-size:43px;line-height:1;margin:0 0 13px}.hero p{color:var(--muted);line-height:1.75;margin:0;max-width:900px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}.kpi{border:1px solid var(--border);border-radius:16px;background:rgba(0,0,0,.18);padding:14px}.kpi b{display:block;color:var(--gold);font-size:18px}.kpi span{color:var(--muted);font-size:12px;line-height:1.45}
+.sec{display:none;padding:26px;margin-bottom:22px}.sec.active{display:block}.head{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:22px}.head h2{font-family:Georgia,serif;font-size:32px;margin:0 0 8px}.head p{margin:0;color:var(--muted);line-height:1.65}.badge{white-space:nowrap;border:1px solid rgba(240,208,128,.36);background:rgba(240,208,128,.1);border-radius:999px;padding:6px 10px;color:#fff2c9;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;height:max-content}
+.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(2,1fr)}.three{grid-template-columns:repeat(3,1fr)}.four{grid-template-columns:repeat(4,1fr)}
+.card{border:1px solid var(--border);border-radius:18px;background:rgba(255,255,255,.045);padding:16px}.card h3{margin:0 0 8px;font-size:18px}.card h4{margin:0 0 8px;color:#fff3c8}.card p,.card li{color:var(--muted);line-height:1.65;font-size:14px}.card p{margin:0 0 10px}.card ul,.card ol{padding-left:20px;margin:8px 0 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#ffefb7;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:2px 5px}
+.crit{border-color:rgba(255,139,125,.42);background:linear-gradient(180deg,rgba(255,139,125,.12),rgba(255,255,255,.04))}
+.good{border-color:rgba(93,215,181,.35);background:linear-gradient(180deg,rgba(93,215,181,.10),rgba(255,255,255,.04))}
+.vd{border-color:rgba(139,92,246,.42);background:linear-gradient(180deg,rgba(139,92,246,.14),rgba(255,255,255,.04))}
+.fr{border-color:rgba(255,107,53,.35);background:linear-gradient(180deg,rgba(255,107,53,.12),rgba(255,255,255,.04))}
+.wa{border-color:rgba(74,171,255,.35);background:linear-gradient(180deg,rgba(74,171,255,.10),rgba(255,255,255,.04))}
+.ea{border-color:rgba(212,168,67,.35);background:linear-gradient(180deg,rgba(212,168,67,.10),rgba(255,255,255,.04))}
+.call{border:1px solid rgba(240,208,128,.34);background:rgba(240,208,128,.09);border-radius:16px;padding:16px;color:#fff1c4;line-height:1.7;margin:14px 0}
+.flow{display:flex;flex-direction:column;gap:10px}.node{border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.05);padding:14px;position:relative}.node:after{content:"↓";position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);color:#706b64}.node:last-child:after{content:""}.node b{display:block;color:#fff3c6;margin-bottom:4px}.node span{display:block;color:var(--muted);font-size:13px;line-height:1.55}.branch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.branch .node:after{display:none}
+table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:15px;overflow:hidden;font-size:13px}th,td{padding:12px 11px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;line-height:1.55}tr:last-child td{border-bottom:0}th{background:rgba(240,208,128,.09);color:#fff4cd;text-align:left;text-transform:uppercase;letter-spacing:.04em;font-size:12px}td{color:var(--muted)}td b{color:var(--text)}
+.acc{border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.04);overflow:hidden;margin-bottom:10px}.acc-h{padding:14px 16px;display:flex;justify-content:space-between;gap:12px;cursor:pointer;color:#fff4cd;font-weight:900}.acc-h small{color:var(--muted)}.acc-b{display:none;padding:0 16px 16px;color:var(--muted);line-height:1.65}.acc.open .acc-b{display:block}.acc.open .acc-h{border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
+.tl{position:relative;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.045);padding:14px;margin-left:24px;margin-bottom:12px}.tl:before{content:"";position:absolute;left:-21px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(240,208,128,.75)}.tl b{display:block;margin-bottom:4px;color:#fff4cd}.tl span{color:var(--muted);font-size:13px;line-height:1.55}
+.prompt{width:100%;min-height:520px;resize:vertical;border:1px solid var(--border);border-radius:18px;background:rgba(0,0,0,.30);color:#f6ead2;padding:16px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;outline:0}
+.toast{position:fixed;right:18px;bottom:18px;z-index:99;background:rgba(4,7,17,.9);border:1px solid rgba(240,208,128,.35);box-shadow:var(--shadow);border-radius:14px;padding:12px 14px;color:#fff3c2;font-size:13px;display:none;max-width:330px}.toast.show{display:block}
+@media(max-width:980px){.app{grid-template-columns:1fr;padding:12px}.side{position:relative;height:auto;top:auto}.hero h2{font-size:34px}.kpis,.two,.three,.four,.branch{grid-template-columns:1fr}.head{flex-direction:column}.sec,.hero{padding:20px;border-radius:22px}}
+@media print{.side,.toast{display:none!important}.app{display:block}.hero,.sec{display:block!important;box-shadow:none;background:#fff;color:#111}.card,.node,.tl,.acc{background:#fff;border:1px solid #ddd}p,li,td,.card p,.card li,.node span,.tl span{color:#333!important}h1,h2,h3,h4,b,strong,th{color:#111!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">
+    <div class="eye">Fonte da Verdade</div>
+    <h1>ARC: AETHON<br>Game Flow Bible</h1>
+    <div class="ver" data-editable data-key="meta-version">v1.2 — Atualizada com Dragão da Convergência, linhagem única do criador, seis elementos, regras de balanceamento e papel mítico no mundo.</div>
+  </div>
+  <div class="tools">
+    <button class="primary" id="editBtn" onclick="toggleEdit()">Ativar edição direta</button>
+    <button onclick="saveEdits()">Salvar alterações</button>
+    <button onclick="downloadHTML()">Baixar HTML atualizado</button>
+    <button onclick="exportJSON()">Exportar conteúdo JSON</button>
+    <button onclick="importJSON()">Importar JSON</button>
+    <button class="danger" onclick="resetEdits()">Restaurar original</button>
+  </div>
+  <input class="search" id="search" type="search" placeholder="Buscar na bíblia..." oninput="searchContent(this.value)">
+  <nav class="nav">
+    <button class="active" onclick="showSection('visao',this)"><span><i class="dot gold"></i>Visão Geral</span></button>
+    <button onclick="showSection('regras',this)"><span><i class="dot void"></i>Regras Críticas</span></button>
+    <button onclick="showSection('estados',this)"><span><i class="dot teal"></i>Estados do Jogo</span></button>
+    <button onclick="showSection('ovo',this)"><span><i class="dot fire"></i>Ovo, Orbs e Absorção</span></button>
+    <button onclick="showSection('nascimento',this)"><span><i class="dot gold"></i>Nascimento</span></button>
+    <button onclick="showSection('taxonomia',this)"><span><i class="dot void"></i>Taxonomia Dracônica</span></button>
+    <button onclick="showSection('convergencia',this)"><span><i class="dot gold"></i>Dragão da Convergência</span></button>
+    <button onclick="showSection('dragao',this)"><span><i class="dot water"></i>Dragão</span></button>
+    <button onclick="showSection('expedicoes',this)"><span><i class="dot earth"></i>Expedições e Materiais</span></button>
+    <button onclick="showSection('ninho',this)"><span><i class="dot teal"></i>Ninho</span></button>
+    <button onclick="showSection('profissoes',this)"><span><i class="dot gold"></i>Profissões</span></button>
+    <button onclick="showSection('sistemas',this)"><span><i class="dot void"></i>Sistemas Técnicos</span></button>
+    <button onclick="showSection('roadmap',this)"><span><i class="dot water"></i>Roadmap</span></button>
+    <button onclick="showSection('arena',this)"><span><i class="dot fire"></i>Prompt Arena.ai</span></button>
+  </nav>
+</aside>
+<main>
+<header class="hero">
+  <div class="eye">Documento Vivo — Editável na própria página</div>
+  <h2 data-editable data-key="hero-title">Arc: Aethon é um jogo sobre vínculo, tempo real e uma criatura única.</h2>
+  <p data-editable data-key="hero-desc">Esta bíblia define o mapa oficial do jogo antes de qualquer código ou visual: estados, transições, regras inquebráveis, sistemas atuais do MVP e sistemas futuros planejados. Ela deve ser enviada como contexto para qualquer IA antes de alterar o projeto.</p>
+  <div class="kpis">
+    <div class="kpi"><b>1 conta</b><span>Um ovo ou um dragão. Nunca dois. Nunca reset narrativo.</span></div>
+    <div class="kpi"><b>Orbs</b><span>Mecânica principal da fase do ovo.</span></div>
+    <div class="kpi"><b>Absorção</b><span>Nome oficial do bônus pós-orbs.</span></div>
+    <div class="kpi"><b>4 Limiar</b><span>Apenas quatro no mundo inteiro; um reservado ao criador.</span></div>
+    <div class="kpi"><b>1 Convergência</b><span>Dragão único do criador, nascido dos seis elementos.</span></div>
+  </div>
+</header>
+
+<section class="sec active" id="sec-visao">
+  <div class="head"><div><h2>Visão Geral</h2><p data-editable data-key="visao-desc">Arc: Aethon é um idle mobile narrativo em que o jogador encontra um único ovo de dragão em um mundo pós-apocalíptico. O jogador cuida desse ovo ao longo de dias reais, influencia seu DNA elemental, presencia um nascimento irreversível e cria um dragão único que explora Aethon.</p></div><span class="badge">MVP + Visão Futura</span></div>
+  <div class="grid two">
+    <div class="card good"><h3>Identidade do jogo</h3><p data-editable data-key="identidade">Fofo e colorido na superfície, profundo e emocional por baixo. Não é apenas um pet game; é um jogo de apego, consequência, mistério e memória.</p></div>
+    <div class="card crit"><h3>Promessa emocional</h3><p data-editable data-key="promessa">O jogador não está colecionando dragões. Ele está criando vínculo com uma única criatura que nasceu das suas escolhas, do tempo e de eventos que não controla totalmente.</p></div>
+  </div>
+  <div class="call" data-editable data-key="frase-operacional"><b>Frase operacional do MVP:</b> o jogador encontra um ovo único, alimenta-o com orbs elementais em tempo real, usa Absorção para intensificar progresso, presencia um nascimento emocional, nomeia o dragão e passa a cuidar dele com alimentação, expedições, materiais, ninho e diário narrativo.</div>
+  <div class="grid three">
+    <div class="card"><h4>Fase 1 — Ovo</h4><p>Orbs, energia elemental, Vazio passivo, maturação, evento noturno e preparação do nascimento.</p></div>
+    <div class="card"><h4>Fase 2 — Dragão</h4><p>Nome, vitalidade, alimentação, personalidade inicial, expedições, diário e recursos.</p></div>
+    <div class="card"><h4>Fase 3 — Longo prazo</h4><p>Ninho customizável, profissões emergentes, zonas avançadas, crafting, Portador e legado.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="sec-regras">
+  <div class="head"><div><h2>Regras Críticas</h2><p>Estas regras não são sugestões. Qualquer prompt, IA ou implementação deve obedecer a elas.</p></div><span class="badge">Nunca quebrar</span></div>
+  <div class="grid two">
+    <div class="card crit"><h3>Uma conta = um ovo ou um dragão</h3><ul data-editable data-key="regra-um-ovo"><li>Se <code>hasEgg = true</code>, <code>hasDragon</code> deve ser <code>false</code>.</li><li>Se <code>hasDragon = true</code>, <code>hasEgg</code> deve ser <code>false</code>.</li><li>Não existe segundo ovo.</li><li>Não existe reset narrativo.</li><li>Não existe backdoor em produção.</li></ul></div>
+    <div class="card vd"><h3>Dragão do Limiar</h3><ul data-editable data-key="regra-limiar"><li>Ultra mega raro.</li><li>Apenas 4 existem no jogo inteiro.</li><li>1 é reservado ao criador/fundador.</li><li>Vazio alto não garante Limiar; apenas abre possibilidade.</li><li>Em produção, exige controle global de servidor.</li><li>Não é documentado ao jogador.</li></ul></div>
+    <div class="card vd"><h3>Dragão da Convergência</h3><ul data-editable data-key="regra-convergencia"><li>Linhagem única do criador.</li><li>Nasce dos seis elementos: Fogo, Água, Terra, Ar, Metal e Vazio.</li><li>Existe apenas 1 em todo o jogo.</li><li>Não é obtível por jogadores comuns, sorte, compra, evento ou farm.</li><li>É o mais especial em significado, versatilidade e potencial, mas não deve invalidar os outros dragões.</li><li>Deve ter controle global/servidor em produção.</li></ul></div>
+    <div class="card good"><h3>Vazio é passivo</h3><p data-editable data-key="regra-vazio">O jogador nunca escolhe inserir Vazio diretamente. O Vazio se infiltra por tempo, eventos, absorções e condições secretas. Isso preserva mistério, risco e raridade.</p></div>
+    <div class="card fr"><h3>O que jamais vender</h3><ul data-editable data-key="regra-monetizacao"><li>Elemento específico garantido.</li><li>Dragão específico garantido.</li><li>Dragão do Limiar.</li><li>Traço de personalidade direto.</li><li>Profissão direta.</li><li>Maturação ilimitada.</li></ul></div>
+  </div>
+  <div class="card ea" style="margin-top:12px"><h3>Nome oficial do bônus pós-orbs</h3><p data-editable data-key="regra-absorcao">O rewarded ad pós-orbs se chama <b>Absorção</b>. Não usar “Amplifique o Ritual”. O ritual diário antigo não é a mecânica principal do MVP.</p></div>
+</section>
+
+<section class="sec" id="sec-estados">
+  <div class="head"><div><h2>Estados do Jogo</h2><p>O jogo deve ser pensado como uma máquina de estados. Cada tela existe porque o save está em um estado específico.</p></div><span class="badge">Roteamento</span></div>
+  <div class="flow">
+    <div class="node"><b>App abre</b><span>SplashScreen carrega save, valida estado e prepara progresso offline.</span></div>
+    <div class="node"><b>Validar save</b><span>Se o save estiver inválido, ir para estado de proteção. Nunca resetar silenciosamente.</span></div>
+    <div class="node"><b>Aplicar progresso offline</b><span>Energia, orbs, timers, expedição, reset diário e notificações pendentes.</span></div>
+    <div class="branch">
+      <div class="node"><b>Novo jogador</b><span>Onboarding e criação do primeiro ovo.</span></div>
+      <div class="node"><b>Tem ovo ativo</b><span>EggScreen ou HatchScene se maturação chegou a 100%.</span></div>
+      <div class="node"><b>Tem dragão</b><span>DragonScreen, expedição, ninho e diário.</span></div>
+    </div>
+  </div>
+  <div class="call"><b>Ordem correta:</b> validar save → aplicar progresso offline → se inválido, proteção → se <code>hasDragon</code>, Dragão → se <code>hasEgg && maturationProgress >= 1</code>, Nascimento → se <code>hasEgg</code>, Ovo → senão, Onboarding.</div>
+  <table><thead><tr><th>Estado</th><th>Descrição</th><th>Próxima transição</th></tr></thead><tbody data-editable data-key="tabela-estados">
+    <tr><td><b>NoSave</b></td><td>Sem save existente.</td><td>Onboarding</td></tr>
+    <tr><td><b>Onboarding</b></td><td>Introdução do Colapso, Guardiões e primeiro contato com o ovo.</td><td>EggActive</td></tr>
+    <tr><td><b>EggActive</b></td><td>Ovo em maturação com orbs, Vazio, evento noturno e idle.</td><td>EggReadyToHatch</td></tr>
+    <tr><td><b>EggReadyToHatch</b></td><td>Maturação chegou a 100%.</td><td>HatchScene</td></tr>
+    <tr><td><b>HatchScene</b></td><td>Nascimento, revelação, nomeação e diário Dia 1.</td><td>DragonActive</td></tr>
+    <tr><td><b>DragonActive</b></td><td>Dragão nascido, alimentação, expedições, ninho, diário e recursos.</td><td>DragonOnExpedition / Nest / Diary</td></tr>
+    <tr><td><b>InvalidSaveState</b></td><td>Save contraditório, corrompido ou incompleto.</td><td>Tela de recuperação/proteção</td></tr>
+  </tbody></table>
+</section>
+
+<section class="sec" id="sec-ovo">
+  <div class="head"><div><h2>Ovo, Orbs e Absorção</h2><p>A fase do ovo é o núcleo do MVP. O ovo é protagonista absoluto; os orbs são a interação principal.</p></div><span class="badge">Loop principal fase 1</span></div>
+  <div class="acc open"><div class="acc-h" onclick="toggleAcc(this)">Sistema de Orbs <small>geração, tray e drag</small></div><div class="acc-b" data-editable data-key="orb-system"><p>Orbs são gerados a cada 2 horas. Cada janela gera 1–2 orbs aleatórios entre Fogo, Água e Terra. O tray tem limite de 8 orbs. O jogador arrasta um orb até o ovo usando pointer events. Se soltar sobre o ovo e houver espaço, o orb sai do tray e passa a orbitar o ovo.</p><ul><li>Máximo no tray: 8.</li><li>Máximo orbitando o ovo: 5.</li><li>Se tentar colocar mais de 5: “Segure o ovo pra absorver primeiro!”</li><li>Se soltar fora do ovo: orb volta ao tray.</li></ul></div></div>
+  <div class="acc open"><div class="acc-h" onclick="toggleAcc(this)">Absorção <small>nome oficial do bônus</small></div><div class="acc-b" data-editable data-key="absorcao"><p>Para absorver energia, o jogador segura o ovo por 2 segundos com pelo menos 1 orb orbitando. Ao completar, todos os orbs orbitando são absorvidos de uma vez.</p><ul><li>Cada orb de Fogo: +0.05 <code>fireEnergy</code>.</li><li>Cada orb de Água: +0.05 <code>waterEnergy</code>.</li><li>Cada orb de Terra: +0.05 <code>earthEnergy</code>.</li><li>Toda absorção: +0.01 <code>voidEnergy</code>, máximo 0.5.</li><li>Maturação: <code>orbsOnEgg.length × 0.02</code>.</li><li>Mensagem: “✨ O ovo absorveu as energias!”</li></ul><p>Depois da absorção, pode aparecer a opção <b>Absorção</b>: bônus narrativo opcional que dobra o ganho da última absorção, respeitando o limite de 3 ads por dia.</p></div></div>
+  <div class="acc"><div class="acc-h" onclick="toggleAcc(this)">Offline dos Orbs <small>lastOrbGenTime</small></div><div class="acc-b" data-editable data-key="orb-offline"><p>Ao abrir o app, calcular janelas de 2 horas desde <code>lastOrbGenTime</code>. Gerar orbs acumulados até preencher o tray. Se o tray encher, atualizar <code>lastOrbGenTime</code> para agora, evitando acumular janelas infinitas antigas. O jogador nunca acumula mais que 8 orbs no tray.</p></div></div>
+  <div class="acc"><div class="acc-h" onclick="toggleAcc(this)">Balanceamento de maturação <small>3–7 dias</small></div><div class="acc-b" data-editable data-key="balanceamento-ovo"><ul><li>Jogador muito ativo: nascimento em aproximadamente 3 dias.</li><li>Jogador casual: nascimento em aproximadamente 5 dias.</li><li>Jogador quase só idle: nascimento em aproximadamente 7 dias.</li></ul><p>Os valores de orbs, maturação por orb e idle devem preservar essa meta.</p></div></div>
+  <div class="grid four" style="margin-top:12px"><div class="card fr"><h4>Fogo</h4><p>Impulso, calor, agressividade, memória das brasas.</p></div><div class="card wa"><h4>Água</h4><p>Serenidade, cura, memória, paz improvável.</p></div><div class="card ea"><h4>Terra</h4><p>Estabilidade, proteção, permanência e vínculo.</p></div><div class="card vd"><h4>Vazio</h4><p>Passivo, misterioso, raro e nunca controlado diretamente.</p></div></div>
+</section>
+
+<section class="sec" id="sec-nascimento">
+  <div class="head"><div><h2>Nascimento</h2><p>A cena de nascimento é o momento mais importante do MVP. Ela transforma o save e o vínculo do jogador.</p></div><span class="badge">Irreversível</span></div>
+  <div>
+    <div class="tl"><b>1. Maturação chega a 100%</b><span>Bloquear interações comuns do ovo e iniciar estado de chocagem final.</span></div>
+    <div class="tl"><b>2. Resolver DNA elemental</b><span>Calcular tipo antes da animação. Limiar só pode nascer se condições secretas e slot global permitirem.</span></div>
+    <div class="tl"><b>3. Rachadura</b><span>Ovo treme e linhas do elemento dominante aparecem.</span></div>
+    <div class="tl"><b>4. Pulso elemental</b><span>Luz pulsa pelas rachaduras. A cor vem do DNA final.</span></div>
+    <div class="tl"><b>5. Explosão</b><span>Ovo explode em partículas. Tela pisca brevemente.</span></div>
+    <div class="tl"><b>6. Revelação</b><span>Dragão aparece com animação, frase narrativa e silêncio emocional.</span></div>
+    <div class="tl"><b>7. Nomeação</b><span>Jogador escolhe o nome. Não avançar sem nome válido.</span></div>
+    <div class="tl"><b>8. Diário Dia 1</b><span>“Dia 1 — Ele abriu os olhos pela primeira vez. Me olhou. Não tinha medo.”</span></div>
+    <div class="tl"><b>9. Transformação do save</b><span><code>hasEgg = false</code>, <code>eggData = null</code>, <code>hasDragon = true</code>, <code>dragonData</code> criado.</span></div>
+  </div>
+  <table style="margin-top:14px"><thead><tr><th>Tipo</th><th>Condição MVP</th><th>Observação</th></tr></thead><tbody data-editable data-key="dragon-types">
+    <tr><td><b>Fogo Puro</b></td><td>Fogo dominante acima do limite de pureza.</td><td>Ardente, intenso, memória de Ignareth.</td></tr>
+    <tr><td><b>Água Pura</b></td><td>Água dominante acima do limite de pureza.</td><td>Sereno, curativo, paz improvável.</td></tr>
+    <tr><td><b>Terra</b></td><td>Terra dominante acima do limite de pureza.</td><td>Estável, protetor, permanece.</td></tr>
+    <tr><td><b>Vapor</b></td><td>Fogo + Água, nenhum elemento puro.</td><td>Imprevisível.</td></tr>
+    <tr><td><b>Marés Vivas</b></td><td>Água + Terra, nenhum elemento puro.</td><td>Equilibrado.</td></tr>
+    <tr><td><b>Lava</b></td><td>Fogo + Terra, nenhum elemento puro.</td><td>Intenso.</td></tr>
+    <tr><td><b>Limiar</b></td><td>Condições secretas + slot global disponível.</td><td>Ultra raro. Apenas 4 no mundo inteiro.</td></tr>
+  </tbody></table>
+</section>
+
+
+<section class="sec" id="sec-taxonomia">
+  <div class="head"><div><h2>Taxonomia Dracônica</h2><p>Lista interna das linhagens de dragões, elementos, fusões e variantes. Esta aba é para a bíblia de produção; dentro do jogo, nem tudo deve ser revelado ao jogador.</p></div><span class="badge">Bestiário interno</span></div>
+
+  <div class="card vd" style="margin-bottom:12px">
+    <h3>Regra de revelação</h3>
+    <p data-editable data-key="taxonomia-regra-revelacao">A bíblia pode conhecer todas as linhagens. O jogador não. O jogo deve revelar dragões aos poucos, conforme nascimento, diário, expedições, ecos de memória e descoberta. O Dragão do Limiar e suas variantes nunca aparecem em lista pública antes de serem descobertos.</p>
+  </div>
+
+  <div class="grid three">
+    <div class="card fr"><h3>Fogo</h3><p data-editable data-key="elemento-fogo">Intensidade, impulso, coragem, destruição, calor ancestral e memória das brasas de Ignareth.</p></div>
+    <div class="card wa"><h3>Água</h3><p data-editable data-key="elemento-agua">Memória, cura, serenidade, adaptação, fluxo e a paz impossível após o Colapso.</p></div>
+    <div class="card ea"><h3>Terra</h3><p data-editable data-key="elemento-terra">Proteção, estabilidade, permanência, resistência, vínculo e aquilo que se recusa a cair.</p></div>
+    <div class="card"><h3>Ar</h3><p data-editable data-key="elemento-ar">Liberdade, velocidade, instinto, presságio, céu partido, rotas antigas e mensagens levadas pelo vento.</p></div>
+    <div class="card"><h3>Metal</h3><p data-editable data-key="elemento-metal">Disciplina, defesa, precisão, tecnologia antiga, forja, lâminas e estruturas que sobreviveram ao fim.</p></div>
+    <div class="card vd"><h3>Vazio</h3><p data-editable data-key="elemento-vazio">Elemento oculto, passivo e não controlável. Representa anomalia, perda, silêncio, limiar e raridade extrema.</p></div>
+  </div>
+
+  <h3 style="margin:22px 0 10px">Linhagens puras</h3>
+  <table>
+    <thead><tr><th>Elemento dominante</th><th>Dragão puro</th><th>Temperamento base</th><th>Observação</th></tr></thead>
+    <tbody data-editable data-key="taxonomia-puros">
+      <tr><td><b>Fogo</b></td><td>Dragão de Fogo Puro</td><td>Ardente</td><td>Nascido das brasas de Ignareth.</td></tr>
+      <tr><td><b>Água</b></td><td>Dragão das Águas Puras</td><td>Sereno</td><td>Carrega calma, memória e cura.</td></tr>
+      <tr><td><b>Terra</b></td><td>Dragão da Terra Antiga</td><td>Estável</td><td>Firme, protetor e ligado ao lar.</td></tr>
+      <tr><td><b>Ar</b></td><td>Dragão dos Ventos</td><td>Livre</td><td>Rápido, curioso e pressente mudanças.</td></tr>
+      <tr><td><b>Metal</b></td><td>Dragão de Metal Vivo</td><td>Disciplinado</td><td>Preciso, resistente e ligado a ruínas tecnológicas.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin:22px 0 10px">Linhagens fundidas públicas</h3>
+  <table>
+    <thead><tr><th>Combinação</th><th>Dragão fundido</th><th>Identidade</th><th>Possível tendência</th></tr></thead>
+    <tbody data-editable data-key="taxonomia-fundidos-publicos">
+      <tr><td><b>Fogo + Água</b></td><td>Dragão do Vapor</td><td>Contradição viva entre calor e fluxo.</td><td>Imprevisível, criativo, emocional.</td></tr>
+      <tr><td><b>Fogo + Terra</b></td><td>Dragão da Lava</td><td>Fúria da terra e do fogo em um só corpo.</td><td>Intenso, resistente, protetor agressivo.</td></tr>
+      <tr><td><b>Água + Terra</b></td><td>Dragão das Marés Vivas</td><td>Harmonia entre estabilidade e movimento.</td><td>Equilibrado, cuidador, persistente.</td></tr>
+      <tr><td><b>Fogo + Ar</b></td><td>Dragão da Tempestade de Cinzas</td><td>Chamas carregadas pelo céu partido.</td><td>Impulsivo, veloz, explorador.</td></tr>
+      <tr><td><b>Água + Ar</b></td><td>Dragão da Névoa Celeste</td><td>Nuvem, chuva e memória suspensa.</td><td>Leve, intuitivo, evasivo.</td></tr>
+      <tr><td><b>Terra + Ar</b></td><td>Dragão das Montanhas Suspensas</td><td>Pedra que aprendeu a voar.</td><td>Contemplativo, guardião de rotas.</td></tr>
+      <tr><td><b>Fogo + Metal</b></td><td>Dragão da Forja</td><td>Calor moldando couraça viva.</td><td>Disciplinado, guerreiro, criador.</td></tr>
+      <tr><td><b>Água + Metal</b></td><td>Dragão do Mercúrio</td><td>Fluido, reflexivo e difícil de prender.</td><td>Adaptável, estratégico, enigmático.</td></tr>
+      <tr><td><b>Terra + Metal</b></td><td>Dragão da Couraça</td><td>Defesa absoluta, pedra e liga ancestral.</td><td>Paciente, robusto, protetor.</td></tr>
+      <tr><td><b>Ar + Metal</b></td><td>Dragão das Lâminas do Vento</td><td>Precisão cortante e velocidade aérea.</td><td>Ágil, técnico, vigilante.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin:22px 0 10px">Variantes regionais, de ninho e profissão</h3>
+  <div class="grid three">
+    <div class="card fr"><h4>Variantes de Fogo</h4><p data-editable data-key="variantes-fogo">Chama Azul, Brasa Antiga, Sol Negro, Coração de Fornalha.</p></div>
+    <div class="card wa"><h4>Variantes de Água</h4><p data-editable data-key="variantes-agua">Maré Profunda, Água Serena, Chuva Eterna, Olho de Lago.</p></div>
+    <div class="card ea"><h4>Variantes de Terra</h4><p data-editable data-key="variantes-terra">Raiz de Pedra, Colosso Jovem, Terra Oca, Casca Ancestral.</p></div>
+    <div class="card"><h4>Variantes de Ar</h4><p data-editable data-key="variantes-ar">Asa Nebulosa, Vento Cortante, Céu Partido, Sopro de Aurora.</p></div>
+    <div class="card"><h4>Variantes de Metal</h4><p data-editable data-key="variantes-metal">Prata Viva, Ferro Antigo, Aço Cantante, Escama de Relógio.</p></div>
+    <div class="card good"><h4>Variantes por profissão</h4><p data-editable data-key="variantes-profissao">A profissão pode alterar título, comportamento e estética: Guardião de Cinzas, Cantor de Marés, Tecedor de Ninho, Memoriador e outros.</p></div>
+  </div>
+
+  <h3 style="margin:22px 0 10px">Fundidos com Vazio — Variantes do Limiar</h3>
+  <div class="card vd" style="margin-bottom:12px">
+    <p data-editable data-key="limiar-variantes-regra"><b>Regra interna:</b> estas são possibilidades de design, não promessas públicas. Como só existem 4 Dragões do Limiar no jogo inteiro, nem todas as variantes precisam existir no live. Cada Limiar real pode ser único, com nome, aparência e história própria controlados pelo servidor.</p>
+  </div>
+  <table>
+    <thead><tr><th>Combinação secreta</th><th>Variante limiar</th><th>Conceito</th><th>Status</th></tr></thead>
+    <tbody data-editable data-key="taxonomia-limiar-variantes">
+      <tr><td><b>Vazio + Fogo</b></td><td>Chama Apagada</td><td>Um fogo que não ilumina, apenas consome memória.</td><td>Ultra secreto</td></tr>
+      <tr><td><b>Vazio + Água</b></td><td>Águas Paradas</td><td>Água imóvel que reflete coisas que ainda não aconteceram.</td><td>Ultra secreto</td></tr>
+      <tr><td><b>Vazio + Terra</b></td><td>Terra Oca</td><td>Solo firme por fora, abismo vivo por dentro.</td><td>Ultra secreto</td></tr>
+      <tr><td><b>Vazio + Ar</b></td><td>Céu Sem Eco</td><td>Um vento silencioso que apaga rastros e presságios.</td><td>Ultra secreto</td></tr>
+      <tr><td><b>Vazio + Metal</b></td><td>Metal Fantasma</td><td>Uma couraça que existe entre dois mundos.</td><td>Ultra secreto</td></tr>
+      <tr><td><b>Vazio + Fogo + Metal</b></td><td>Forja do Limiar</td><td>Variante mítica ligada a armas, ruínas e tecnologia impossível.</td><td>Possível exemplar único</td></tr>
+      <tr><td><b>Vazio + Água + Ar</b></td><td>Névoa do Limiar</td><td>Variante mítica ligada a sonhos, deslocamento e memórias perdidas.</td><td>Possível exemplar único</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout" data-editable data-key="taxonomia-canon-limiar">Cânone recomendado: os 4 Dragões do Limiar existentes no mundo não precisam ser “tipos repetíveis”. Eles podem ser entidades únicas, cada uma usando uma dessas variantes como base, mas com nome próprio, aparência própria e história própria. Um desses quatro é reservado ao criador.</div>
+
+  <h3 style="margin:22px 0 10px">Linhagens Únicas</h3>
+  <div class="grid two">
+    <div class="card vd"><h4>Dragão da Convergência</h4><p data-editable data-key="taxonomia-convergencia-resumo">Único no mundo inteiro e reservado ao criador. Nasceu da união impossível dos seis elementos: Fogo, Água, Terra, Ar, Metal e Vazio. Não é uma linhagem sorteável, vendável ou repetível.</p></div>
+    <div class="card vd"><h4>Dragões do Limiar</h4><p data-editable data-key="taxonomia-limiar-resumo">Apenas 4 entidades no mundo inteiro. Cada uma pode ter variante, nome, visual e história próprios. Um slot é reservado ao criador, mas o Dragão da Convergência é uma categoria ainda mais singular.</p></div>
+  </div>
+</section>
+
+
+<section class="sec" id="sec-convergencia">
+  <div class="head"><div><h2>Dragão da Convergência</h2><p data-editable data-key="convergencia-head-desc">Linhagem única do criador: um dragão nascido do equilíbrio impossível entre Fogo, Água, Terra, Ar, Metal e Vazio. Ele representa o início do Próximo Ciclo sem transformar todos os outros dragões em inferiores.</p></div><span class="badge">Único do criador</span></div>
+
+  <div class="card vd" style="margin-bottom:12px">
+    <h3>Entrada oficial de lore</h3>
+    <p data-editable data-key="convergencia-lore"><b>Dragão da Convergência</b><br><br>Não nasceu de um elemento dominante, nem de uma fusão comum. Ele surgiu quando os seis princípios de Aethon tocaram o mesmo ovo sem se destruírem. Fogo, Água, Terra, Ar, Metal e Vazio encontraram um equilíbrio impossível. O que nasceu não pertence a nenhuma linhagem conhecida. Ele não é apenas raro — ele é um sinal de que o Próximo Ciclo já começou.</p>
+  </div>
+
+  <div class="grid two">
+    <div class="card gd">
+      <h3>Regras canônicas</h3>
+      <ul data-editable data-key="convergencia-regras">
+        <li>Existe apenas 1 Dragão da Convergência em todo o jogo.</li>
+        <li>Ele é reservado ao criador/fundador.</li>
+        <li>Não pode nascer por chance comum.</li>
+        <li>Não pode ser comprado.</li>
+        <li>Não pode ser farmado.</li>
+        <li>Não aparece em lista pública do jogador.</li>
+        <li>Em produção, precisa ser protegido por servidor.</li>
+      </ul>
+    </div>
+
+    <div class="card good">
+      <h3>Regra de balanceamento</h3>
+      <p data-editable data-key="convergencia-balanceamento">O Dragão da Convergência pode ser o mais singular, versátil e mítico, mas não deve ser simplesmente o melhor em todos os números. Ele vence em amplitude, adaptabilidade, potencial e autoridade narrativa. Um dragão puro ainda pode superar a Convergência em sua especialidade elemental.</p>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 10px">Os seis elementos nele</h3>
+  <table>
+    <thead><tr><th>Elemento</th><th>Expressão no Dragão da Convergência</th><th>Função simbólica</th></tr></thead>
+    <tbody data-editable data-key="convergencia-elementos">
+      <tr><td><b>Fogo</b></td><td>Brasas vivas sob as escamas, impulso e coragem.</td><td>A centelha que inicia o ciclo.</td></tr>
+      <tr><td><b>Água</b></td><td>Veios fluidos de luz, memória e cura.</td><td>Aquilo que lembra e adapta.</td></tr>
+      <tr><td><b>Terra</b></td><td>Placas firmes, raízes de proteção e permanência.</td><td>A base que impede o ciclo de ruir.</td></tr>
+      <tr><td><b>Ar</b></td><td>Correntes invisíveis, leveza e presságio.</td><td>O chamado para novos caminhos.</td></tr>
+      <tr><td><b>Metal</b></td><td>Linhas metálicas antigas, precisão e defesa.</td><td>A memória técnica do mundo perdido.</td></tr>
+      <tr><td><b>Vazio</b></td><td>Aura sutil, silêncio entre as luzes, anomalia controlada.</td><td>O limite entre fim e renascimento.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid two" style="margin-top:12px">
+    <div class="card vd">
+      <h3>Passivo único</h3>
+      <p data-editable data-key="convergencia-passivo"><b>Convergência Viva:</b> o dragão pode ressoar com todos os elementos e manifestar pequenos benefícios conforme contexto, ninho, zona, material ou evento. Ele não usa todos os poderes no máximo ao mesmo tempo; ele se adapta.</p>
+    </div>
+    <div class="card vd">
+      <h3>Aspectos</h3>
+      <p data-editable data-key="convergencia-aspectos">Pode alternar aspectos: Aspecto da Brasa, Aspecto das Marés, Aspecto da Raiz, Aspecto do Céu, Aspecto da Forja e Aspecto do Limiar. Cada aspecto muda estética, comportamento e bônus leve.</p>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 10px">Vantagens permitidas sem quebrar o jogo</h3>
+  <table>
+    <thead><tr><th>Área</th><th>Como ele é especial</th><th>Limite de balanceamento</th></tr></thead>
+    <tbody data-editable data-key="convergencia-vantagens">
+      <tr><td><b>Versatilidade</b></td><td>Interage bem com todos os elementos, materiais e zonas.</td><td>Não deve superar um especialista puro no próprio domínio.</td></tr>
+      <tr><td><b>Ninho</b></td><td>Aceita estruturas de todos os elementos sem conflito.</td><td>Exige materiais raros e progressão longa.</td></tr>
+      <tr><td><b>Expedição</b></td><td>Adapta-se a vários ambientes e eventos secretos.</td><td>Não remove risco; apenas oferece rotas alternativas.</td></tr>
+      <tr><td><b>Diário</b></td><td>Possui entradas exclusivas ligadas ao Próximo Ciclo.</td><td>Conteúdo especial, não vantagem econômica infinita.</td></tr>
+      <tr><td><b>Profissão</b></td><td>Pode ter profissão única: Portador do Próximo Ciclo ou Guardião da Convergência.</td><td>Não deve invalidar profissões comuns.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card fr" style="margin-top:12px">
+    <h3>Frase de nascimento</h3>
+    <p data-editable data-key="convergencia-frase-nascimento">“Quando os seis princípios tocaram o mesmo coração, Aethon prendeu a respiração. O que nasceu não deveria existir — mas talvez fosse exatamente o que o mundo esperava.”</p>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>Entrada de diário exclusiva</h3>
+    <p data-editable data-key="convergencia-diario">“Dia 1 — Ele abriu os olhos e, por um instante, todos os elementos ficaram em silêncio. Não parecia perdido. Parecia lembrar de mim.”</p>
+  </div>
+</section>
+
+<section class="sec" id="sec-dragao">
+  <div class="head"><div><h2>Dragão</h2><p>Depois do nascimento, o jogo muda de mistério para vínculo. O dragão tem vitalidade, traços, diário, recursos e futuro profissional.</p></div><span class="badge">Loop fase 2</span></div>
+  <div class="grid two">
+    <div class="card wa"><h3>Dados principais</h3><ul data-editable data-key="dados-dragao"><li><code>dragonName</code></li><li><code>dragonType</code></li><li><code>dominantElement</code></li><li><code>vitality</code></li><li><code>personalityTraits</code></li><li><code>isOnExpedition</code></li><li><code>diaryEntries</code></li><li><code>crystals</code> e materiais</li><li><code>nestData</code></li><li><code>professionProgress</code></li></ul></div>
+    <div class="card good"><h3>Alimentação MVP</h3><ul data-editable data-key="alimentacao"><li><b>Brasa Crocante:</b> Cristal de Fogo x1, aumenta vitalidade e empurra para Corajoso.</li><li><b>Caldo das Marés:</b> Cristal de Água x1, aumenta vitalidade e empurra para Gentil.</li><li><b>Raiz Dourada:</b> Cristal de Terra x1, aumenta vitalidade e empurra para Leal.</li></ul></div>
+  </div>
+  <div class="card" style="margin-top:12px"><h3>Diário</h3><p data-editable data-key="diario-regra">O diário não deve parecer log técnico. Ele registra memórias emocionais: nascimento, primeira expedição, lesões, ecos de memória, mudanças no ninho, nascimento de profissão e eventos raros. Exemplo correto: “Fui às bordas de Ignareth hoje. O cheiro de cinzas não me incomodou.”</p></div>
+</section>
+
+<section class="sec" id="sec-expedicoes">
+  <div class="head"><div><h2>Expedições e Materiais</h2><p>Expedições são a ponte entre gameplay, recursos, lore, ninho e profissões.</p></div><span class="badge">Recursos + mundo</span></div>
+  <div class="flow"><div class="node"><b>Dragão disponível</b><span>Não está em expedição, não está machucado e tem vitalidade suficiente.</span></div><div class="node"><b>Escolher zona e camada</b><span>No MVP: Ruínas de Ignareth, Camada 1 ou Camada 2.</span></div><div class="node"><b>Expedição inicia</b><span>Define início, retorno, risco e notificação.</span></div><div class="node"><b>Retorno</b><span>Jogador coleta cristais, materiais e entrada de diário. Pode haver lesão.</span></div></div>
+  <table style="margin-top:14px"><thead><tr><th>Camada</th><th>Duração</th><th>Risco</th><th>Recompensas</th></tr></thead><tbody data-editable data-key="expedicoes"><tr><td><b>Fronteira de Ignareth</b></td><td>30min–2h</td><td>Nenhum</td><td>1–3 Cristais de Fogo, 1 material comum de ruína, chance baixa de fragmento narrativo.</td></tr><tr><td><b>Interior de Ignareth</b></td><td>3h–6h</td><td>10% lesão leve</td><td>2–5 cristais mistos, 1–2 materiais incomuns, chance de Eco de Memória.</td></tr></tbody></table>
+  <div class="grid three" style="margin-top:12px"><div class="card fr"><h4>Cinza Viva</h4><p>Material de Ignareth para calor, braseiros, ninhos de fogo e forja futura.</p></div><div class="card ea"><h4>Pedra Antiga</h4><p>Base estrutural para ninho, estabilidade e proteção.</p></div><div class="card vd"><h4>Eco do Vazio</h4><p>Material raro para eventos misteriosos e possíveis alterações limiares.</p></div></div>
+</section>
+
+<section class="sec" id="sec-ninho">
+  <div class="head"><div><h2>Ninho</h2><p>O ninho é a casa emocional do dragão e o principal uso futuro dos materiais coletados.</p></div><span class="badge">Customização</span></div>
+  <div class="call" data-editable data-key="ninho-loop"><b>Loop do ninho:</b> expedições geram materiais → materiais alteram o ninho → ninho muda conforto, estética e bônus passivos → dragão reage ao ambiente → personalidade e profissão são influenciadas com o tempo.</div>
+  <table><thead><tr><th>Parte do ninho</th><th>Exemplos</th><th>Efeito possível</th></tr></thead><tbody data-editable data-key="ninho-partes"><tr><td><b>Base</b></td><td>Pedra Antiga, Pedra de Ignareth</td><td>Estabilidade, defesa, tendência Terra/Fogo.</td></tr><tr><td><b>Revestimento</b></td><td>Musgo Luminoso, folhas raras</td><td>Recuperação, serenidade, tendência Água.</td></tr><tr><td><b>Fonte de calor</b></td><td>Braseiro Antigo, Cinza Viva</td><td>Vitalidade, calor, tendência Fogo.</td></tr><tr><td><b>Objeto de conforto</b></td><td>Cobertura macia, cristal morno</td><td>Vínculo, descanso e recuperação.</td></tr><tr><td><b>Relíquia</b></td><td>Sino dos Guardiões, Eco de Memória</td><td>Lore, diário, profissões ligadas à memória.</td></tr><tr><td><b>Ambiente elemental</b></td><td>Névoa serena, brasas, raízes</td><td>Estética e bônus passivos leves.</td></tr></tbody></table>
+  <div class="card good" style="margin-top:12px"><h3>Regra de implementação</h3><p data-editable data-key="ninho-implementacao">No MVP, o ninho pode começar simples: slots visuais e 2–3 materiais. O sistema deve ser preparado para bônus e profissões futuras, mas sem criar complexidade antes da hora.</p></div>
+</section>
+
+<section class="sec" id="sec-profissoes">
+  <div class="head"><div><h2>Profissões</h2><p>Profissões não devem ser escolhidas diretamente. Elas emergem da história vivida pelo dragão.</p></div><span class="badge">Futuro planejado</span></div>
+  <div class="call" data-editable data-key="profissao-formula"><b>Fórmula de profissão:</b> o que o dragão come + onde explora + como é o ninho + seus traços + seu tipo elemental + eventos vividos = profissão despertada.</div>
+  <div class="grid two"><div class="card"><h3>Como nasce uma profissão</h3><ol data-editable data-key="profissao-nascimento"><li>Dragão nasce e passa alguns dias sendo cuidado.</li><li>Alimentação, expedições, ninho e eventos acumulam tendências invisíveis.</li><li>Ao atingir maturidade jovem, surge um evento: “Ele começou a demonstrar um chamado.”</li><li>A profissão é revelada como consequência, não como escolha direta.</li></ol></div><div class="card crit"><h3>Regra crítica</h3><p data-editable data-key="profissao-regra">Não vender profissão direta. Não permitir “selecionar classe”. A profissão deve parecer descoberta natural de uma criatura única.</p></div></div>
+  <table style="margin-top:14px"><thead><tr><th>Profissão</th><th>Estilo</th><th>Como pode surgir</th></tr></thead><tbody data-editable data-key="profissoes-exemplos"><tr><td><b>Guardião de Cinzas</b></td><td>Protetor/resistente</td><td>Terra + Fogo + muitas expedições em ruínas.</td></tr><tr><td><b>Cantor de Marés</b></td><td>Suporte/cura/lore</td><td>Água + ninho sereno + eventos de memória.</td></tr><tr><td><b>Farejador de Ecos</b></td><td>Explorador</td><td>Muitas expedições + curiosidade alta.</td></tr><tr><td><b>Tecedor de Ninho</b></td><td>Construtor</td><td>Muitos upgrades de ninho e materiais variados.</td></tr><tr><td><b>Memoriador</b></td><td>Lore/diário</td><td>Muitos Ecos de Memória coletados.</td></tr><tr><td><b>Vigia do Limiar</b></td><td>Raríssimo/místico</td><td>Contato raro com Vazio e condições secretas.</td></tr></tbody></table>
+</section>
+
+<section class="sec" id="sec-sistemas">
+  <div class="head"><div><h2>Sistemas Técnicos</h2><p>Esta aba organiza sistemas de background que toda IA deve respeitar ao mexer no jogo.</p></div><span class="badge">Arquitetura lógica</span></div>
+  <div class="grid two">
+    <div class="card"><h3>SaveManager</h3><p data-editable data-key="sys-save">Carrega, valida, salva e protege o save. Auto-save em ações importantes. Nunca resetar silenciosamente. Detectar <code>InvalidSaveState</code>.</p></div>
+    <div class="card"><h3>TimeManager</h3><p data-editable data-key="sys-time">Calcula tempo offline, reset diário, maturação passiva, timers de expedição e disponibilidade de eventos.</p></div>
+    <div class="card"><h3>OrbSystem</h3><p data-editable data-key="sys-orb">Gera orbs a cada 2 horas, controla tray, <code>lastOrbGenTime</code>, drag, orbs no ovo e absorção.</p></div>
+    <div class="card"><h3>DragonTypeResolver</h3><p data-editable data-key="sys-resolver">Resolve tipo do dragão. Em produção, Limiar exige verificação global no servidor antes de confirmar nascimento.</p></div>
+    <div class="card"><h3>ExpeditionSystem</h3><p data-editable data-key="sys-expedition">Controla envio, retorno, risco, lesão, recompensas, materiais, diário e notificações.</p></div>
+    <div class="card"><h3>NestSystem</h3><p data-editable data-key="sys-nest">Controla slots do ninho, materiais aplicados, estética, conforto e tendências para profissões futuras.</p></div>
+    <div class="card"><h3>ProfessionSystem</h3><p data-editable data-key="sys-profession">Sistema futuro. Acumula tendências e revela profissão emergente quando o dragão amadurece.</p></div>
+    <div class="card"><h3>NotificationManager</h3><p data-editable data-key="sys-notification">Notificações narrativas: evento noturno, orbs disponíveis, ovo quase nascendo, nascimento e retorno de expedição.</p></div>
+  </div>
+  <div class="card vd" style="margin-top:12px"><h3>Controle global do Limiar</h3><p data-editable data-key="sys-limiar-global">Em protótipo local, o Limiar pode ser simulado como bloqueado ou reservado. Em produção, o servidor precisa controlar quantos existem no mundo inteiro, quais contas possuem cada um e qual slot está reservado ao criador. O cliente nunca decide sozinho criar um Limiar.</p></div>
+</section>
+
+<section class="sec" id="sec-roadmap">
+  <div class="head"><div><h2>Roadmap</h2><p>Separação clara entre o que entra agora, o que fica preparado e o que é futuro.</p></div><span class="badge">Escopo</span></div>
+  <div class="grid three">
+    <div class="card good"><h3>MVP obrigatório</h3><ul data-editable data-key="roadmap-mvp"><li>Onboarding</li><li>Ovo</li><li>Orbs</li><li>Absorção</li><li>Nascimento</li><li>Dragão</li><li>Alimentação básica</li><li>Expedição básica</li><li>Diário</li><li>Materiais simples</li><li>Ninho básico visual</li></ul></div>
+    <div class="card ea"><h3>Preparar estrutura</h3><ul data-editable data-key="roadmap-preparar"><li>Ninho com slots expansíveis</li><li>Materiais por zona</li><li>Traços de personalidade</li><li>Tendências de profissão</li><li>Controle de eventos raros</li><li>Proteção de save</li><li>Servidor futuro para Limiar</li><li>Servidor/proteção para Dragão da Convergência único do criador</li><li>Taxonomia Dracônica expansível</li></ul></div>
+    <div class="card vd"><h3>Futuro</h3><ul data-editable data-key="roadmap-futuro"><li>Profissões completas</li><li>Crafting profundo</li><li>Zonas além de Ignareth</li><li>Personalidade com 5 eixos</li><li>Portador</li><li>Passe do Ciclo</li><li>Jogo 2 / sociedade dos dragões</li><li>Linhagens únicas e eventos globais míticos</li></ul></div>
+  </div>
+</section>
+
+<section class="sec" id="sec-arena">
+  <div class="head"><div><h2>Prompt para Arena.ai</h2><p>Use este prompt para pedir à Arena.ai uma versão interativa/editável da bíblia ou para atualizar este HTML.</p></div><span class="badge">Copiar e colar</span></div>
+  <button class="primary" onclick="copyPrompt()">Copiar prompt</button>
+  <textarea class="prompt" id="arenaPrompt" spellcheck="false">Você é um desenvolvedor front-end e designer de documentação interativa.
+
+Crie um HTML único, completo, responsivo e interativo para a documentação:
+
+ARC: AETHON — GAME FLOW BIBLE v1.1
+
+OBJETIVO
+Criar uma bíblia interativa do jogo Arc: Aethon que funcione como fonte da verdade antes de qualquer código do jogo. O HTML deve permitir edição direta do conteúdo na própria página, sem o usuário precisar mexer no código.
+
+REQUISITOS DO HTML
+1. Ser um único arquivo .html, com CSS e JavaScript embutidos.
+2. Ter navegação por abas ou menu lateral.
+3. Ter modo "Editar conteúdo" que permita alterar textos diretamente na página usando contenteditable.
+4. Ter botão "Salvar alterações" usando localStorage.
+5. Ter botão "Baixar HTML atualizado" para exportar a versão editada como novo arquivo HTML.
+6. Ter botão "Restaurar original".
+7. Ter busca interna.
+8. Ter design escuro, elegante, místico, inspirado em Arc: Aethon.
+9. Ser responsivo para desktop e mobile.
+10. Não usar bibliotecas externas.
+
+CONTEÚDO OBRIGATÓRIO
+
+VISÃO GERAL
+Arc: Aethon é um idle mobile narrativo onde o jogador encontra um único ovo de dragão em um mundo pós-apocalíptico chamado Aethon. O jogo é fofo e colorido na superfície, mas profundo e emocional por baixo. O foco é vínculo, tempo real, mistério e consequência.
+
+REGRAS CRÍTICAS
+- Uma conta = um ovo ou um dragão, nunca mais.
+- Não existe segundo ovo, reset narrativo ou backdoor em produção.
+- Vazio é sempre passivo.
+- Rewarded ad pós-orbs se chama "Absorção".
+- O ritual diário antigo não é mecânica principal do MVP.
+
+DRAGÃO DO LIMIAR
+- Ultra mega raro.
+- Apenas 4 existem no jogo inteiro.
+- 1 é reservado ao criador/fundador.
+- Vazio alto não garante Limiar; apenas abre possibilidade.
+- Em produção, exige controle global de servidor.
+- Não é documentado ao jogador.
+- O cliente nunca decide sozinho criar um Limiar.
+
+ESTADOS DO JOGO
+NoSave, Onboarding, EggActive, EggReadyToHatch, HatchScene, DragonActive, DragonOnExpedition, ExpeditionReturnReady, NestManagement, DiaryView, InvalidSaveState.
+
+ORDEM DE ROTEAMENTO
+Abrir app → carregar save → validar save → aplicar progresso offline → se inválido, proteção → se hasDragon, DragonScreen → senão se hasEgg e maturationProgress >= 1, HatchScene → senão se hasEgg, EggScreen → senão Onboarding.
+
+OVO, ORBS E ABSORÇÃO
+Orbs são a mecânica principal da fase do ovo.
+- Gerados a cada 2 horas.
+- 1–2 orbs por janela.
+- Fogo, Água ou Terra.
+- Máximo de 8 no tray.
+- Máximo de 5 orbitando o ovo.
+- Arrastar com pointer events.
+- Segurar ovo por 2 segundos para absorver.
+- Cada orb adiciona +0.05 ao elemento.
+- Toda absorção adiciona +0.01 de Vazio, máximo 0.5.
+- Maturação aumenta orbsOnEgg.length × 0.02.
+- O bônus pós-orbs se chama Absorção e dobra o ganho da última absorção, máximo 3 ads/dia.
+- Offline: calcular janelas desde lastOrbGenTime; se o tray encher, atualizar lastOrbGenTime para agora.
+
+NASCIMENTO
+A cena de nascimento é o momento mais importante. Deve incluir rachadura, pulso elemental, explosão, revelação, frase narrativa, nomeação, diário Dia 1 e transformação irreversível do save.
+
+DRAGÃO
+Depois do nascimento, o jogo muda de mistério para vínculo. Dados: dragonName, dragonType, dominantElement, vitality, personalityTraits, isOnExpedition, diaryEntries, crystals, materials, nestData, professionProgress.
+
+EXPEDIÇÕES E MATERIAIS
+Ruínas de Ignareth no MVP.
+Camada 1: 30min–2h, sem risco, cristais + material comum.
+Camada 2: 3h–6h, 10% lesão, cristais mistos + materiais incomuns + chance de Eco de Memória.
+
+NINHO
+O ninho é a casa emocional do dragão. Expedições geram materiais, materiais alteram o ninho, o ninho muda conforto/estética/bônus e influencia personalidade/profissão. Partes: base, revestimento, fonte de calor, objeto de conforto, relíquia e ambiente elemental.
+
+PROFISSÕES
+Profissões não são escolhidas diretamente. Elas emergem da história vivida: comida + expedições + ninho + traços + tipo elemental + eventos = profissão despertada. Exemplos: Guardião de Cinzas, Cantor de Marés, Farejador de Ecos, Tecedor de Ninho, Memoriador, Vigia do Limiar.
+
+SISTEMAS TÉCNICOS
+SaveManager, TimeManager, OrbSystem, DragonTypeResolver, ExpeditionSystem, NestSystem, ProfessionSystem, NotificationManager, InvalidSaveState e controle global do Limiar.
+
+ROADMAP
+MVP: Onboarding, Ovo, Orbs, Absorção, Nascimento, Dragão, Alimentação básica, Expedição básica, Diário, Materiais simples, Ninho básico visual.
+Preparar: ninho expansível, materiais por zona, traços, tendências de profissão, eventos raros, proteção de save, servidor futuro para Limiar.
+Futuro: profissões completas, crafting profundo, zonas além de Ignareth, personalidade com 5 eixos, Portador, Passe do Ciclo, Jogo 2.
+
+
+13. TAXONOMIA DRACÔNICA
+Adicionar uma aba chamada "Taxonomia Dracônica" ou "Linhagens de Dragões".
+
+A aba deve conter:
+- Elementos públicos: Fogo, Água, Terra, Ar e Metal.
+- Elemento oculto: Vazio.
+- Linhagens puras: Fogo Puro, Águas Puras, Terra Antiga, Ventos, Metal Vivo.
+- Linhagens fundidas públicas com as combinações entre Fogo, Água, Terra, Ar e Metal.
+- Variantes regionais, variantes de ninho e variantes por profissão.
+- Variantes do Limiar, incluindo combinações com Vazio.
+
+Linhagens fundidas públicas sugeridas:
+- Fogo + Água: Dragão do Vapor.
+- Fogo + Terra: Dragão da Lava.
+- Água + Terra: Dragão das Marés Vivas.
+- Fogo + Ar: Dragão da Tempestade de Cinzas.
+- Água + Ar: Dragão da Névoa Celeste.
+- Terra + Ar: Dragão das Montanhas Suspensas.
+- Fogo + Metal: Dragão da Forja.
+- Água + Metal: Dragão do Mercúrio.
+- Terra + Metal: Dragão da Couraça.
+- Ar + Metal: Dragão das Lâminas do Vento.
+
+Variantes do Limiar sugeridas:
+- Vazio + Fogo: Chama Apagada.
+- Vazio + Água: Águas Paradas.
+- Vazio + Terra: Terra Oca.
+- Vazio + Ar: Céu Sem Eco.
+- Vazio + Metal: Metal Fantasma.
+- Vazio + Fogo + Metal: Forja do Limiar.
+- Vazio + Água + Ar: Névoa do Limiar.
+
+Regra importante sobre Limiar:
+Essas variantes são possibilidades internas de design, não promessas públicas. Como só existem 4 Dragões do Limiar no jogo inteiro e 1 é reservado ao criador, nem todas as variantes precisam existir no jogo live. Cada Limiar real pode ser entidade única, com nome, aparência e história própria, controlada pelo servidor.
+
+13. DRAGÃO DA CONVERGÊNCIA
+Adicionar uma seção própria chamada "Dragão da Convergência".
+Ele é a linhagem única do criador/fundador.
+- Nasceu dos seis elementos juntos: Fogo, Água, Terra, Ar, Metal e Vazio.
+- Existe apenas 1 em todo o jogo.
+- É reservado ao criador.
+- Não pode ser comprado, sorteado, farmado ou obtido por jogadores comuns.
+- Não aparece em lista pública do jogador.
+- Precisa de controle global/servidor em produção.
+- Ele é o mais especial em significado, versatilidade e potencial, mas não deve ser simplesmente o melhor em todos os números.
+- Um dragão puro ainda pode ser melhor em sua especialidade elemental.
+
+Lore oficial:
+"Não nasceu de um elemento dominante, nem de uma fusão comum. Ele surgiu quando os seis princípios de Aethon tocaram o mesmo ovo sem se destruírem. Fogo, Água, Terra, Ar, Metal e Vazio encontraram um equilíbrio impossível. O que nasceu não pertence a nenhuma linhagem conhecida. Ele não é apenas raro — ele é um sinal de que o Próximo Ciclo já começou."
+
+Passivo único:
+Convergência Viva — pode ressoar com todos os elementos e manifestar pequenos benefícios conforme contexto, ninho, zona, material ou evento. Ele não usa todos os poderes no máximo ao mesmo tempo; ele se adapta.
+
+Frase de nascimento:
+"Quando os seis princípios tocaram o mesmo coração, Aethon prendeu a respiração. O que nasceu não deveria existir — mas talvez fosse exatamente o que o mundo esperava."
+
+IMPORTANTE
+Não escreva código do jogo. O arquivo é apenas uma bíblia interativa. O foco é documentação editável, navegação clara, fonte da verdade e facilidade para copiar/colar em prompts futuros.</textarea>
+</section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY="arc_aethon_game_flow_bible_v1_edits";let edit=false;
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(window._t);window._t=setTimeout(()=>e.classList.remove("show"),2600)}
+function showSection(id,b){document.querySelectorAll(".sec").forEach(s=>{s.classList.remove("active");s.style.display=""});document.getElementById("sec-"+id).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
+function toggleAcc(h){h.closest(".acc").classList.toggle("open")}
+function toggleEdit(){edit=!edit;document.body.classList.toggle("editing",edit);document.querySelectorAll("[data-editable]").forEach(e=>e.contentEditable=edit);document.getElementById("editBtn").textContent=edit?"Desativar edição direta":"Ativar edição direta";toast(edit?"Edição ativada. Clique nos textos para alterar.":"Edição desativada.")}
+function collect(){const d={};document.querySelectorAll("[data-editable][data-key]").forEach(e=>d[e.dataset.key]=e.innerHTML);d.__prompt=document.getElementById("arenaPrompt").value;return d}
+function apply(d){if(!d)return;Object.entries(d).forEach(([k,v])=>{if(k==="__prompt"){document.getElementById("arenaPrompt").value=v;return}const e=document.querySelector('[data-editable][data-key="'+CSS.escape(k)+'"]');if(e)e.innerHTML=v})}
+function saveEdits(){localStorage.setItem(KEY,JSON.stringify(collect()));toast("Alterações salvas neste navegador.")}
+function load(){try{apply(JSON.parse(localStorage.getItem(KEY)||"null"))}catch(e){}}
+function resetEdits(){if(confirm("Restaurar o conteúdo original?")){localStorage.removeItem(KEY);location.reload()}}
+function downloadHTML(){saveEdits();const c=document.documentElement.cloneNode(true);c.querySelectorAll("[contenteditable]").forEach(e=>e.contentEditable=false);c.querySelector("body")?.classList.remove("editing");const blob=new Blob(["<!doctype html>\n"+c.outerHTML],{type:"text/html;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="arc-aethon-game-flow-bible-v1-editavel.html";document.body.appendChild(a);a.click();a.remove();toast("HTML atualizado baixado.")}
+function exportJSON(){const blob=new Blob([JSON.stringify(collect(),null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="arc-aethon-game-flow-bible-v1-2-conteudo.json";a.click();toast("JSON exportado.")}
+function importJSON(){const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{apply(JSON.parse(r.result));saveEdits();toast("JSON importado.")}catch(e){alert("JSON inválido.")}};r.readAsText(f)};i.click()}
+function searchContent(q){q=q.trim().toLowerCase();const secs=[...document.querySelectorAll(".sec")];if(!q){secs.forEach(s=>s.style.display="");return}secs.forEach(s=>s.style.display=s.innerText.toLowerCase().includes(q)?"block":"none")}
+function copyPrompt(){const p=document.getElementById("arenaPrompt");p.select();navigator.clipboard?.writeText(p.value).then(()=>toast("Prompt copiado.")).catch(()=>{document.execCommand("copy");toast("Prompt copiado.")})}
+document.addEventListener("DOMContentLoaded",()=>{load();document.querySelectorAll("[data-editable]").forEach(e=>e.contentEditable=false)})
+</script>
+</body>
+</html>

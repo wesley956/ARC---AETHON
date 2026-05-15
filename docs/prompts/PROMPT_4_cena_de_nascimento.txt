@@ -1,0 +1,632 @@
+# ARC: AETHON — PROMPT 4
+## Implementar a Cena de Nascimento e a criação do DragonData
+
+Você está trabalhando no projeto Arc: Aethon.
+
+A fundação do projeto já existe.
+O sistema de Orbs e Absorção já foi implementado e corrigido.
+Agora a missão é implementar a Cena de Nascimento.
+
+IMPORTANTE:
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere o sistema de Orbs e Absorção, exceto se for estritamente necessário para integração.
+Não implemente dragão completo ainda.
+Não implemente expedições ainda.
+Não implemente ninho ainda.
+Não implemente profissões ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+
+Sua missão é implementar apenas:
+
+CENA DE NASCIMENTO + RESOLUÇÃO DO TIPO DO DRAGÃO + CRIAÇÃO DO DRAGONDATA.
+
+---
+
+# FONTE DA VERDADE
+
+O projeto deve obedecer à ARC: AETHON — Game Flow Bible v1.2.
+
+Regras centrais:
+
+- Uma conta = um ovo ou um dragão, nunca os dois.
+- O nascimento é irreversível.
+- Ao nascer, o ovo deixa de existir.
+- O nascimento deve criar dragonData.
+- O nascimento deve apagar eggData.
+- O jogador deve nomear o dragão.
+- O diário deve receber a entrada do Dia 1.
+- Dragões do Limiar são ultra raros e exigem controle global futuro.
+- No MVP local, Limiar pode existir apenas como estrutura/tipo previsto, mas não deve ser garantido por Vazio alto.
+- Dragão da Convergência é único do criador e deve ficar apenas previsto na estrutura, não jogável agora.
+
+---
+
+# OBJETIVO
+
+Transformar a HatchScreen de placeholder em uma cena funcional e emocional com:
+
+1. Leitura do eggData atual.
+2. Resolução do tipo do dragão a partir das energias.
+3. Sequência visual simples de nascimento.
+4. Texto narrativo baseado no tipo.
+5. Input para nomear o dragão.
+6. Validação do nome.
+7. Criação do dragonData.
+8. Criação da primeira entrada do diário.
+9. Transição irreversível do save:
+   - hasEgg = false
+   - eggData = null
+   - hasDragon = true
+   - dragonData criado
+10. Navegação para DragonScreen após confirmar nome.
+
+---
+
+# DRAGON TYPE RESOLVER
+
+Criar ou completar um sistema responsável por resolver o tipo do dragão.
+
+Sugestão de arquivo:
+
+src/systems/DragonTypeResolver.ts
+
+Ele deve exportar uma função, por exemplo:
+
+resolveDragonType(eggData: EggData): ResolvedDragonType
+
+ou similar.
+
+---
+
+# ELEMENTOS CONSIDERADOS NO MVP
+
+No MVP atual, a fase do ovo gera principalmente:
+
+- fireEnergy
+- waterEnergy
+- earthEnergy
+- voidEnergy
+
+O projeto já prevê também:
+
+- airEnergy
+- metalEnergy
+
+Mas Ar e Metal ainda não são mecânicas ativas do ovo no MVP.
+
+Portanto, o resolver deve suportar todos os campos, mas funcionar corretamente mesmo quando airEnergy e metalEnergy estiverem em 0.
+
+---
+
+# REGRAS DE RESOLUÇÃO DO TIPO
+
+IMPORTANTE:
+Não transformar Vazio alto em garantia automática de Limiar.
+
+No MVP local, use esta ordem:
+
+1. Calcular o total de energia pública:
+
+fireEnergy + waterEnergy + earthEnergy + airEnergy + metalEnergy
+
+2. Se o total público for 0, usar fallback seguro:
+- tipo: earth_pure ou equivalente de Terra
+- elemento dominante: earth
+- motivo: evitar erro técnico
+
+3. Calcular proporções públicas:
+
+fireRatio
+waterRatio
+earthRatio
+airRatio
+metalRatio
+
+4. Identificar o elemento público dominante.
+
+5. Se algum elemento público tiver proporção >= 0.60:
+- retornar dragão puro correspondente.
+
+6. Se nenhum elemento público tiver >= 0.60:
+- pegar os dois maiores elementos públicos.
+- retornar dragão fundido correspondente.
+
+7. Sobre Limiar:
+- Se voidEnergy for alto, apenas marcar um campo narrativo interno como:
+  voidTouched: true
+- NÃO transformar automaticamente em Dragão do Limiar.
+- NÃO entregar Dragão do Limiar por regra local.
+- O Limiar real será implementado futuramente com servidor e controle global.
+
+8. Sobre Convergência:
+- Não resolver Convergência para jogadores comuns.
+- Deixar apenas estrutura/tipo previsto na taxonomia.
+- Não criar Dragão da Convergência neste prompt.
+
+---
+
+# TIPOS DE DRAGÃO DO MVP
+
+Mapear os tipos principais.
+
+Puros:
+
+- fire_pure
+  Nome: Dragão de Fogo Puro
+  Elemento dominante: fire
+
+- water_pure
+  Nome: Dragão das Águas Puras
+  Elemento dominante: water
+
+- earth_pure
+  Nome: Dragão da Terra Antiga
+  Elemento dominante: earth
+
+- air_pure
+  Nome: Dragão dos Ventos
+  Elemento dominante: air
+
+- metal_pure
+  Nome: Dragão de Metal Vivo
+  Elemento dominante: metal
+
+Fundidos:
+
+- steam
+  Combinação: fire + water
+  Nome: Dragão do Vapor
+
+- lava
+  Combinação: fire + earth
+  Nome: Dragão da Lava
+
+- living_tides
+  Combinação: water + earth
+  Nome: Dragão das Marés Vivas
+
+- ash_storm
+  Combinação: fire + air
+  Nome: Dragão da Tempestade de Cinzas
+
+- celestial_mist
+  Combinação: water + air
+  Nome: Dragão da Névoa Celeste
+
+- suspended_mountains
+  Combinação: earth + air
+  Nome: Dragão das Montanhas Suspensas
+
+- forge
+  Combinação: fire + metal
+  Nome: Dragão da Forja
+
+- mercury
+  Combinação: water + metal
+  Nome: Dragão do Mercúrio
+
+- carapace
+  Combinação: earth + metal
+  Nome: Dragão da Couraça
+
+- wind_blades
+  Combinação: air + metal
+  Nome: Dragão das Lâminas do Vento
+
+Se os nomes internos do projeto forem diferentes, adaptar ao padrão já existente em dragonTaxonomy.ts.
+Não duplicar tipos se já existirem.
+
+---
+
+# FRASES NARRATIVAS POR TIPO
+
+A HatchScreen deve mostrar uma frase narrativa baseada no tipo resolvido.
+
+Usar pelo menos estas frases:
+
+fire_pure:
+"Nascido das brasas de Ignareth. Seus olhos queimam com a memória do mundo."
+
+water_pure:
+"Das águas paradas de Velun. Ele carrega algo que não deveria ser possível: paz."
+
+earth_pure:
+"Da terra que não cedeu. Ele está aqui. Ele ficará."
+
+steam:
+"Fogo e Água em um só. Aethon nunca viu isso antes do Colapso."
+
+living_tides:
+"Água e Terra em harmonia. Raro. Precioso."
+
+lava:
+"A fúria da terra e do fogo. Prepare-se."
+
+air_pure:
+"Dos ventos que ainda lembram o céu antigo, ele respirou pela primeira vez."
+
+metal_pure:
+"Do metal que sobreviveu ao Colapso, nasceu uma vontade que não se dobra."
+
+ash_storm:
+"Fogo e Ar se encontraram em cinzas dançantes. Algo veloz demais para ser preso nasceu."
+
+celestial_mist:
+"Água e Ar se tornaram névoa viva. Ele parece lembrar lugares onde nunca esteve."
+
+suspended_mountains:
+"Terra e Ar desafiaram o peso do mundo. Ele nasceu entre permanência e liberdade."
+
+forge:
+"Fogo e Metal cantaram dentro da casca. Uma alma de forja abriu os olhos."
+
+mercury:
+"Água e Metal fluíram como prata viva. Seu corpo parece mudar com cada reflexo."
+
+carapace:
+"Terra e Metal se fecharam em couraça. Ele nasceu para resistir."
+
+wind_blades:
+"Ar e Metal cortaram o silêncio. Suas asas parecem ouvir o futuro."
+
+fallback:
+"Ele abriu os olhos. Aethon ficou em silêncio por um instante."
+
+Se voidTouched for true, adicionar uma linha secundária opcional, sem revelar Limiar:
+
+"Por um instante, algo entre as rachaduras pareceu olhar de volta."
+
+Essa frase deve ser sutil.
+Não chamar o dragão de Limiar.
+
+---
+
+# SEQUÊNCIA VISUAL DA HATCHSCREEN
+
+Implementar uma sequência simples, bonita e funcional.
+
+Não precisa ser cinema perfeito.
+Precisa ser emocional e estável.
+
+Fases sugeridas:
+
+1. PREPARING
+   - Carrega eggData.
+   - Resolve tipo do dragão.
+   - Mostra ovo centralizado.
+   - Texto: "Algo se move dentro da casca..."
+
+2. CRACKING
+   - Ovo treme.
+   - Rachaduras aparecem visualmente.
+   - Luz do elemento dominante começa a vazar.
+
+3. PULSE
+   - Ovo pulsa com glow elemental.
+   - Texto curto: "A energia acumulada responde."
+
+4. BURST
+   - Efeito de brilho/partículas simples.
+   - Ovo desaparece ou abre.
+   - Tela pisca levemente.
+
+5. REVEAL
+   - Mostrar representação visual do dragão.
+   - Pode ser uma silhueta/ícone/arte simbólica por enquanto.
+   - Mostrar nome do tipo resolvido.
+   - Mostrar frase narrativa.
+
+6. NAMING
+   - Input para o jogador nomear o dragão.
+   - Botão "Confirmar nome".
+
+7. COMPLETE
+   - Criar dragonData.
+   - Atualizar save.
+   - Navegar para DragonScreen.
+
+---
+
+# CONTROLE DA SEQUÊNCIA
+
+A sequência pode ser automática com timers simples.
+
+Exemplo de duração:
+
+- PREPARING: 1000ms
+- CRACKING: 1800ms
+- PULSE: 1800ms
+- BURST: 1200ms
+- REVEAL: permanece até jogador avançar ou mostra botão
+- NAMING: aguarda input do jogador
+
+Pode haver botão "Continuar" após revelar o tipo para ir para nomeação.
+
+Não deixar a cena travada se timer falhar.
+
+---
+
+# INPUT DE NOME
+
+Regras:
+
+- Campo obrigatório.
+- Nome mínimo: 2 caracteres.
+- Nome máximo: 20 caracteres.
+- Remover espaços extras no começo/fim.
+- Se inválido, mostrar mensagem clara:
+  "Dê um nome ao seu dragão antes de continuar."
+- Não permitir confirmar vazio.
+- Não permitir nome só com espaços.
+
+---
+
+# CRIAÇÃO DO DRAGONDATA
+
+Ao confirmar nome, criar dragonData com os campos esperados pelo projeto.
+
+Exemplo conceitual:
+
+dragonData = {
+  dragonName: nomeDigitado,
+  dragonType: tipoResolvido,
+  dominantElement: elementoDominante,
+  vitality: 1,
+  personalityTraits: traços iniciais,
+  isOnExpedition: false,
+  diaryEntries: [entradaDia1],
+  crystals: inicial,
+  materials: [],
+  nestData: ninhoInicial,
+  professionProgress: estruturaInicial
+}
+
+Adaptar aos tipos reais do projeto.
+
+---
+
+# TRAÇOS INICIAIS
+
+Se o projeto já tem tipos de personalidade, usar os existentes.
+
+Sugestão simples:
+
+- fire dominante: Brave
+- water dominante: Gentle
+- earth dominante: Loyal
+- air dominante: Curious
+- metal dominante: Cautious
+- fundidos: usar dois traços coerentes com os dois elementos
+
+Se for arriscado implementar traços complexos, criar apenas uma estrutura simples compatível com o tipo existente.
+
+Não criar sistema completo de personalidade agora.
+
+---
+
+# DIÁRIO DIA 1
+
+Criar a primeira entrada do diário:
+
+"Dia 1 — Ele abriu os olhos pela primeira vez. Me olhou. Não tinha medo."
+
+A entrada deve ter:
+
+- id
+- dayNumber ou day
+- createdAt
+- text
+- type ou category, se o tipo existir
+
+Adaptar ao modelo atual do projeto.
+
+---
+
+# NINHO INICIAL
+
+Se dragonData exige nestData, criar ninho inicial básico.
+
+Exemplo:
+
+nestData = {
+  slots: [],
+  comfort: 0,
+  style: "basic"
+}
+
+Adaptar aos tipos reais do projeto.
+
+Não implementar edição de ninho ainda.
+
+---
+
+# PROFESSIONPROGRESS INICIAL
+
+Se dragonData exige professionProgress, criar estrutura inicial vazia.
+
+Exemplo:
+
+professionProgress = {
+  tendencies: {},
+  unlockedProfession: null
+}
+
+Adaptar aos tipos reais do projeto.
+
+Não implementar profissões ainda.
+
+---
+
+# SAVE IRREVERSÍVEL
+
+Ao finalizar nascimento:
+
+Obrigatório:
+
+hasEgg = false
+eggData = null
+hasDragon = true
+dragonData = novoDragonData
+
+Também atualizar:
+
+lastSaveTime
+
+Não alterar lastDayKey indevidamente.
+Não criar novo ovo.
+Não manter eggData escondido.
+Não permitir voltar para EggScreen.
+
+Critério:
+Depois do nascimento, ao recarregar o app, ele deve abrir em DragonScreen.
+
+---
+
+# HATCHSCREEN SEM EGGDATA
+
+Se por algum motivo HatchScreen abrir sem eggData válido:
+
+- não crashar;
+- mostrar mensagem de erro segura;
+- não criar dragão automaticamente;
+- orientar que o save está inconsistente;
+- se possível, direcionar para InvalidSaveScreen ou estado de proteção.
+
+Não resetar automaticamente.
+
+---
+
+# VISUAL ESPERADO
+
+Manter o estilo místico/escuro do projeto.
+
+A HatchScreen deve ter:
+
+- fundo escuro com glow elemental;
+- ovo grande no centro nas primeiras fases;
+- rachaduras visuais simples;
+- pulso de luz;
+- representação do dragão ao revelar;
+- texto narrativo com destaque;
+- input de nome bonito;
+- botão claro para confirmar.
+
+Elementos por cor:
+
+fire: laranja/vermelho
+water: azul
+earth: dourado/terra
+air: ciano/claro
+metal: prata/cinza
+voidTouched: roxo sutil
+
+Não precisa criar arte final.
+Pode usar CSS, emoji, silhueta ou símbolos temporários.
+
+---
+
+# ARQUIVOS QUE PROVAVELMENTE SERÃO ALTERADOS
+
+Você provavelmente vai mexer em:
+
+- src/screens/HatchScreen.tsx
+- src/context/GameContext.tsx
+- src/systems/DragonTypeResolver.ts
+- src/data/dragonTaxonomy.ts
+- src/types/game.ts
+- src/constants/gameConstants.ts
+
+Talvez criar:
+
+- src/components/HatchingEgg.tsx
+- src/components/DragonRevealCard.tsx
+- src/systems/DragonFactory.ts
+- src/utils/id.ts
+
+Não altere arquivos desnecessários.
+
+---
+
+# CUIDADOS TÉCNICOS
+
+- Não mutar o save diretamente.
+- Usar updateSave ou função equivalente do GameContext.
+- Não criar estado inválido.
+- Não deixar hasEgg e hasDragon true ao mesmo tempo.
+- Não manter eggData depois do nascimento.
+- Não criar segundo ovo.
+- Não implementar reset público.
+- Não implementar Limiar global real.
+- Não criar Convergência jogável.
+- Não implementar expedições.
+- Não implementar ninho completo.
+- Não implementar profissões completas.
+- Não implementar monetização real.
+- Preservar sistema de Orbs e Absorção.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- abrir HatchScreen quando maturação >= 1;
+- resolver tipo do dragão a partir das energias;
+- mostrar sequência visual de nascimento;
+- mostrar frase narrativa do tipo resolvido;
+- permitir nomear o dragão;
+- impedir nome vazio/inválido;
+- criar dragonData corretamente;
+- criar entrada do diário Dia 1;
+- transformar save de ovo para dragão de forma irreversível;
+- após recarregar, abrir DragonScreen;
+- não permitir voltar para EggScreen;
+- não criar Limiar automaticamente por voidEnergy alto;
+- não criar Convergência jogável;
+- não quebrar Orbs/Absorção;
+- manter build funcionando.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Criar novo save pelo onboarding.
+2. Usar DebugPanel DEV ONLY ou método seguro para colocar maturationProgress em 1.
+3. Confirmar que o app abre HatchScreen.
+4. Ver sequência de nascimento.
+5. Nomear o dragão.
+6. Confirmar que vai para DragonScreen.
+7. Recarregar a página.
+8. Confirmar que continua em DragonScreen.
+9. Confirmar que save não tem eggData depois do nascimento.
+10. Confirmar que hasEgg=false e hasDragon=true.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como o DragonTypeResolver funciona.
+3. Como a HatchScreen funciona.
+4. Como o DragonData é criado.
+5. Como testar o nascimento.
+6. O que ficou preparado para o próximo prompt.
