@@ -37,7 +37,7 @@ export function canAffordFood(crystals: CrystalInventory, recipe: FoodRecipe): b
 }
 
 export function getRequiredCrystal(recipe: FoodRecipe): keyof CrystalInventory | null {
-  const entries = Object.entries(recipe.cost).filter(([, cost]) => (cost || 0) > 0);
+  const entries = Object.entries(recipe.cost).filter(([, c]) => (c || 0) > 0);
   if (entries.length > 0) return entries[0][0] as keyof CrystalInventory;
   return null;
 }
@@ -74,7 +74,6 @@ export function feedDragon(dragonData: DragonData, foodId: string): FeedResult {
   }
 
   const newVitality = Math.min(MAX_VITALITY, dragonData.vitality + recipe.vitalityGain);
-
   const newTraits = { ...dragonData.personalityTraits };
   const traitKey = recipe.traitPush;
   newTraits[traitKey] = Math.min(1, newTraits[traitKey] + recipe.traitAmount);
@@ -85,7 +84,6 @@ export function feedDragon(dragonData: DragonData, foodId: string): FeedResult {
 
   const existingDiaryEntries = dragonData.diaryEntries ?? [];
   const currentDay = calculateCurrentDay(existingDiaryEntries);
-
   const newDiaryEntry: DiaryEntry = {
     id: generateId('diary'),
     dayNumber: currentDay,
@@ -108,8 +106,12 @@ export function feedDragon(dragonData: DragonData, foodId: string): FeedResult {
 
 function getElementName(element: keyof CrystalInventory | null): string {
   if (!element) return 'desconhecido';
-  const names: Record<string, string> = {
-    fire: 'Fogo', water: 'Água', earth: 'Terra', air: 'Ar', metal: 'Metal',
+  const names: Record<keyof CrystalInventory, string> = {
+    fire: 'Fogo',
+    water: 'Água',
+    earth: 'Terra',
+    air: 'Ar',
+    metal: 'Metal',
   };
   return names[element] || element;
 }

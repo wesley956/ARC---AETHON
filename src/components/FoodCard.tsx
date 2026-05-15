@@ -1,79 +1,41 @@
 // ============================================================
 // ARC: AETHON — FOOD CARD
-// Mobile-optimized food item card.
 // ============================================================
 
 import { FoodRecipe, CrystalInventory } from '../types/game';
-import { ELEMENT_EMOJI } from '../constants/gameConstants';
-import { canAffordFood } from '../systems/DragonCareSystem';
 
 interface FoodCardProps {
-  recipe: FoodRecipe;
+  food: FoodRecipe;
   crystals: CrystalInventory;
-  vitality: number;
-  isOnExpedition: boolean;
-  isInjured: boolean;
   onFeed: (foodId: string) => void;
+  disabled?: boolean;
 }
 
-export default function FoodCard({ recipe, crystals, vitality, isOnExpedition, isInjured, onFeed }: FoodCardProps) {
-  const canAfford = canAffordFood(crystals, recipe);
-  const isFull = vitality >= 1.0;
-  const isDisabled = !canAfford || isFull || isOnExpedition || isInjured;
-
-  let unavailabilityReason = '';
-  if (isOnExpedition) unavailabilityReason = 'Em expedição';
-  else if (isInjured) unavailabilityReason = 'Machucado';
-  else if (isFull) unavailabilityReason = 'Satisfeito';
-  else if (!canAfford) unavailabilityReason = 'Cristais insuficientes';
+export default function FoodCard({ food, crystals, onFeed, disabled }: FoodCardProps) {
+  const canAfford = Object.entries(food.cost).every(([element, amount]) => {
+    return (crystals[element as keyof CrystalInventory] || 0) >= (amount || 0);
+  });
 
   return (
-    <div className="space-y-1">
-      <button
-        onClick={() => onFeed(recipe.id)}
-        disabled={isDisabled}
-        className={`
-          w-full p-4 rounded-xl border transition-all text-left
-          min-h-[72px]
-          ${isDisabled
-            ? 'bg-[#12121a]/30 border-[#2a2a3a]/30 opacity-60 cursor-not-allowed'
-            : 'bg-[#12121a]/50 border-[#2a2a3a]/50 hover:border-[#a78bfa]/50 active:border-[#a78bfa] active:scale-[0.99]'
-          }
-        `}
-        aria-label={`${recipe.name}${isDisabled ? ` - ${unavailabilityReason}` : ''}`}
-        aria-disabled={isDisabled}
-      >
-        <div className="flex items-center gap-4">
-          <span className="text-3xl flex-shrink-0">{recipe.emoji}</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-medium text-[#e8e8ec] mb-1">{recipe.name}</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              {Object.entries(recipe.cost).map(([element, cost]) => {
-                const available = crystals[element as keyof CrystalInventory] || 0;
-                const hasEnough = available >= (cost || 0);
-                return (
-                  <span 
-                    key={element} 
-                    className={`text-sm ${hasEnough ? 'text-[#a0a0b0]' : 'text-red-400'}`}
-                  >
-                    {ELEMENT_EMOJI[element]} {cost}
-                  </span>
-                );
-              })}
-              <span className="text-sm text-green-400">
-                +{Math.round(recipe.vitalityGain * 100)}% vida
-              </span>
-            </div>
-          </div>
+    <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{food.emoji}</span>
+          <span className="text-sm font-medium text-[#e8e8ec]">{food.name}</span>
         </div>
+      </div>
+      <div className="flex items-center gap-2 mb-3 text-xs text-[#6a6a7a]">
+        {Object.entries(food.cost).map(([element, amount]) => (
+          <span key={element}>Custo: {amount} cristal</span>
+        ))}
+      </div>
+      <button
+        onClick={() => onFeed(food.id)}
+        disabled={disabled || !canAfford}
+        className="w-full py-3 bg-[#a78bfa] hover:bg-[#9171e8] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.98]"
+      >
+        Alimentar
       </button>
-
-      {/* Show unavailability reason below the button */}
-      {unavailabilityReason && (
-        <p className="text-xs text-[#6a6a7a] text-center px-2">
-          {unavailabilityReason}
-        </p>
-      )}
     </div>
   );
 }

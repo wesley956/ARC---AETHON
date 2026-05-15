@@ -4,7 +4,6 @@
 // ============================================================
 
 // --- SCREENS / STATE MACHINE ---
-
 export type AppScreen =
   | 'Splash'
   | 'NoSave'
@@ -20,7 +19,6 @@ export type AppScreen =
   | 'InvalidSaveState';
 
 // --- ELEMENTS ---
-
 export type PublicElementType = 'fire' | 'water' | 'earth' | 'air' | 'metal';
 export type HiddenElementType = 'void';
 export type ElementType = PublicElementType | HiddenElementType;
@@ -29,15 +27,13 @@ export type ElementType = PublicElementType | HiddenElementType;
 export type MvpOrbElement = 'fire' | 'water' | 'earth';
 
 // --- ORBS ---
-
 export interface Orb {
   id: string;
   element: MvpOrbElement;
-  createdAt: number; // timestamp
+  createdAt: number;
 }
 
 // --- EGG ---
-
 export interface EggData {
   fireEnergy: number;
   waterEnergy: number;
@@ -45,17 +41,16 @@ export interface EggData {
   airEnergy: number;
   metalEnergy: number;
   voidEnergy: number;
-  maturationProgress: number; // 0..1 (1 = ready to hatch)
+  maturationProgress: number;
   maturationRate: number;
-  eggCreationTime: number; // timestamp
+  eggCreationTime: number;
   availableOrbs: Orb[];
   orbsOnEgg: Orb[];
-  lastOrbGenTime: number; // timestamp
+  lastOrbGenTime: number;
   nightEventDoneToday: boolean;
 }
 
 // --- DIARY ---
-
 export interface DiaryEntry {
   id: string;
   dayNumber: number;
@@ -65,7 +60,6 @@ export interface DiaryEntry {
 }
 
 // --- MATERIALS ---
-
 export type MaterialId = 'living_ash' | 'ancient_stone' | 'shell_fragment' | 'memory_echo';
 
 export interface MaterialDefinition {
@@ -76,10 +70,8 @@ export interface MaterialDefinition {
   description: string;
 }
 
-// Material inventory uses a simple record for easy quantity management
 export type MaterialInventory = Record<MaterialId, number>;
 
-// Legacy Material interface (for compatibility)
 export interface Material {
   id: string;
   name: string;
@@ -90,7 +82,6 @@ export interface Material {
 }
 
 // --- EXPEDITION ---
-
 export type ExpeditionZoneId = 'ruinas_de_ignareth';
 export type ExpeditionLayerId = 'fronteira' | 'interior';
 
@@ -110,16 +101,13 @@ export interface ExpeditionRewards {
 }
 
 // --- INJURY ---
-
 export interface InjuryState {
   isInjured: boolean;
-  recoveryTime: number | null; // timestamp when recovery completes
+  recoveryTime: number | null;
 }
 
 // --- NEST ---
-
 export type NestSlotType = 'base' | 'comfort' | 'relic';
-
 export type NestStyle = 'basic' | 'warm' | 'stone' | 'memory';
 
 export interface NestSlot {
@@ -145,7 +133,6 @@ export interface NestData {
 }
 
 // --- PROFESSIONS ---
-
 export interface ProfessionProgress {
   discoveredProfession: string | null;
   professionXp: number;
@@ -159,7 +146,6 @@ export interface ProfessionProgress {
 }
 
 // --- CRYSTALS ---
-
 export interface CrystalInventory {
   fire: number;
   water: number;
@@ -169,24 +155,22 @@ export interface CrystalInventory {
 }
 
 // --- PERSONALITY ---
-
 export interface PersonalityTraits {
-  courage: number; // Corajoso
-  gentleness: number; // Gentil
-  loyalty: number; // Leal
-  curiosity: number; // Curioso
-  resilience: number; // Resiliente
+  courage: number;
+  gentleness: number;
+  loyalty: number;
+  curiosity: number;
+  resilience: number;
 }
 
 export type TraitKey = keyof PersonalityTraits;
 
 // --- DRAGON TAXONOMY ---
-
 export type DragonLineageCategory =
   | 'pure'
   | 'fused_public'
-  | 'threshold_variant' // Limiar — internal only
-  | 'convergence'; // Unique creator dragon
+  | 'threshold_variant'
+  | 'convergence';
 
 export interface DragonType {
   id: string;
@@ -194,44 +178,32 @@ export interface DragonType {
   category: DragonLineageCategory;
   elements: ElementType[];
   lore?: string;
-  isHidden: boolean; // true for threshold/convergence — never revealed to player
+  isHidden: boolean;
 }
 
 // --- DRAGON ---
-
 export interface DragonData {
   dragonName: string;
-  dragonType: string; // DragonType.id
+  dragonType: string;
   dominantElement: ElementType;
-  vitality: number; // 0..1 (percentage)
+  vitality: number;
   personalityTraits: PersonalityTraits;
-
-  // Expedition state
   isOnExpedition: boolean;
   expeditionEndTime: number | null;
   expeditionZoneId: ExpeditionZoneId | null;
   expeditionLayerId: ExpeditionLayerId | null;
   expeditionStartTime: number | null;
-
-  // Injury state
   isInjured: boolean;
   recoveryTime: number | null;
-
-  // Collections
   diaryEntries: DiaryEntry[];
   crystals: CrystalInventory;
   materials: MaterialInventory;
-
-  // Nest and profession
   nestData: NestData;
   professionProgress: ProfessionProgress;
-
-  // Feeding tracking
-  foodsEatenFirstTime: string[]; // Track first-time foods for special diary entries
+  foodsEatenFirstTime: string[];
 }
 
 // --- SAVE ---
-
 export const CURRENT_SAVE_VERSION = 1;
 
 export interface GameSave {
@@ -242,21 +214,19 @@ export interface GameSave {
   dragonData: DragonData | null;
   onboardingDone: boolean;
   lastSaveTime: number;
-  lastDayKey: string; // "YYYY-MM-DD"
+  lastDayKey: string;
   totalAdsWatched: number;
   lastAdResetDay: string;
   saveVersion: number;
 }
 
 // --- SAVE VALIDATION ---
-
 export interface SaveValidationResult {
   isValid: boolean;
   errors: string[];
 }
 
 // --- FOOD SYSTEM ---
-
 export interface FoodRecipe {
   id: string;
   name: string;

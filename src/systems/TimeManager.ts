@@ -12,9 +12,6 @@ import {
   MVP_ORB_ELEMENTS,
 } from '../constants/gameConstants';
 
-/**
- * Get today's date key in YYYY-MM-DD format.
- */
 export function getTodayKey(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -23,9 +20,6 @@ export function getTodayKey(): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Generate a random orb.
- */
 function generateOrb(): Orb {
   const element: MvpOrbElement = MVP_ORB_ELEMENTS[Math.floor(Math.random() * MVP_ORB_ELEMENTS.length)];
   return {
@@ -35,23 +29,13 @@ function generateOrb(): Orb {
   };
 }
 
-/**
- * Process offline orb generation.
- * Called when the app opens to catch up on missed orb windows.
- */
 export function processOfflineOrbs(eggData: EggData): EggData {
   const now = Date.now();
   const elapsed = now - eggData.lastOrbGenTime;
-
-  // Calculate how many windows have passed
   const windowsPassed = Math.floor(elapsed / ORB_GENERATION_INTERVAL_MS);
 
-  if (windowsPassed === 0) {
-    // No complete windows passed, return unchanged
-    return eggData;
-  }
+  if (windowsPassed === 0) return eggData;
 
-  // Generate orbs for each window
   const newOrbs: Orb[] = [];
   for (let i = 0; i < windowsPassed; i++) {
     const orbsThisWindow = ORB_MIN_PER_WINDOW + Math.floor(Math.random() * (ORB_MAX_PER_WINDOW - ORB_MIN_PER_WINDOW + 1));
@@ -60,11 +44,9 @@ export function processOfflineOrbs(eggData: EggData): EggData {
     }
   }
 
-  // Combine with existing orbs, respecting tray max
   const combinedOrbs = [...eggData.availableOrbs, ...newOrbs];
   const finalOrbs = combinedOrbs.slice(0, ORB_TRAY_MAX);
 
-  // Update lastOrbGenTime
   const newLastOrbGenTime = finalOrbs.length >= ORB_TRAY_MAX
     ? now
     : eggData.lastOrbGenTime + windowsPassed * ORB_GENERATION_INTERVAL_MS;
@@ -76,51 +58,26 @@ export function processOfflineOrbs(eggData: EggData): EggData {
   };
 }
 
-/**
- * Apply daily reset if it's a new day.
- * This is the ONLY place where lastDayKey should be modified.
- */
 export function applyDailyReset(save: GameSave): GameSave {
   const todayKey = getTodayKey();
+  if (save.lastDayKey === todayKey) return save;
 
-  if (save.lastDayKey === todayKey) {
-    // Same day, no reset needed
-    return save;
-  }
+  let updatedSave: GameSave = { ...save, lastDayKey: todayKey };
 
-  // New day! Apply resets
-  let updatedSave: GameSave = {
-    ...save,
-    lastDayKey: todayKey,
-  };
-
-  // Reset egg daily flags
   if (updatedSave.eggData) {
     updatedSave = {
       ...updatedSave,
-      eggData: {
-        ...updatedSave.eggData,
-        nightEventDoneToday: false,
-      },
+      eggData: { ...updatedSave.eggData, nightEventDoneToday: false },
     };
   }
 
-  // Reset ad counter if needed
   if (updatedSave.lastAdResetDay !== todayKey) {
-    updatedSave = {
-      ...updatedSave,
-      totalAdsWatched: 0,
-      lastAdResetDay: todayKey,
-    };
+    updatedSave = { ...updatedSave, totalAdsWatched: 0, lastAdResetDay: todayKey };
   }
 
   return updatedSave;
 }
 
-/**
- * Calculate the time until the next orb.
- * Returns milliseconds.
- */
 export function getTimeUntilNextOrb(lastOrbGenTime: number): number {
   const now = Date.now();
   const elapsed = now - lastOrbGenTime;
@@ -128,24 +85,17 @@ export function getTimeUntilNextOrb(lastOrbGenTime: number): number {
   return remaining;
 }
 
-/**
- * Format milliseconds as HH:MM:SS.
- */
 export function formatTimeRemaining(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-/**
- * Calculate the current day number since egg creation or dragon birth.
- */
 export function calculateDayNumber(creationTime: number): number {
   const now = Date.now();
   const elapsed = now - creationTime;
   const days = Math.floor(elapsed / (24 * 60 * 60 * 1000));
-  return days + 1; // Day 1 is the first day
+  return days + 1;
 }

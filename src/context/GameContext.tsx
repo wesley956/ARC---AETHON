@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — GAME CONTEXT
-// Central state management.
 // Fixed for React StrictMode compatibility.
 // ============================================================
 
@@ -34,21 +33,15 @@ export function useGame(): GameContextValue {
 function resolveScreen(save: GameSave): AppScreen {
   if (save.hasDragon && save.dragonData) {
     if (save.dragonData.isOnExpedition) {
-      if (save.dragonData.expeditionEndTime && Date.now() >= save.dragonData.expeditionEndTime) {
-        return 'ExpeditionReturnReady';
-      }
+      if (save.dragonData.expeditionEndTime && Date.now() >= save.dragonData.expeditionEndTime) return 'ExpeditionReturnReady';
       return 'DragonOnExpedition';
     }
     return 'DragonActive';
   }
-
   if (save.hasEgg && save.eggData) {
-    if (save.eggData.maturationProgress >= MATURATION_HATCH_THRESHOLD) {
-      return 'HatchScene';
-    }
+    if (save.eggData.maturationProgress >= MATURATION_HATCH_THRESHOLD) return 'HatchScene';
     return 'EggActive';
   }
-
   if (!save.onboardingDone) return 'Onboarding';
   return 'Onboarding';
 }
@@ -59,32 +52,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Boot sequence - runs once on mount
   // Fixed for StrictMode: no useRef guard needed
   useEffect(() => {
     const timer = setTimeout(() => {
       const loaded = loadSave();
+      if (!loaded) { setCurrentScreen('Onboarding'); setIsLoading(false); return; }
 
-      if (!loaded) {
-        setCurrentScreen('Onboarding');
-        setIsLoading(false);
-        return;
-      }
-
-      // Normalize save to handle old formats before validation
       const normalizedLoaded = normalizeSave(loaded);
-
       const validation: SaveValidationResult = validateSave(normalizedLoaded);
-      if (!validation.isValid) {
-        setValidationErrors(validation.errors);
-        setCurrentScreen('InvalidSaveState');
-        setSave(loaded);
-        setIsLoading(false);
-        return;
-      }
+      if (!validation.isValid) { setValidationErrors(validation.errors); setCurrentScreen('InvalidSaveState'); setSave(loaded); setIsLoading(false); return; }
 
       let processedSave = applyDailyReset(normalizedLoaded);
-
       if (processedSave.hasEgg && processedSave.eggData) {
         const updatedEgg = processOfflineOrbs(processedSave.eggData);
         processedSave = { ...processedSave, eggData: updatedEgg };
@@ -95,18 +73,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setCurrentScreen(resolveScreen(processedSave));
       setIsLoading(false);
     }, 600);
-
     return () => clearTimeout(timer);
   }, []);
 
   const startNewGame = useCallback(() => {
     const randomElement: MvpOrbElement = MVP_ORB_ELEMENTS[Math.floor(Math.random() * MVP_ORB_ELEMENTS.length)];
-    const initialOrb = {
-      id: `orb_initial_${Date.now()}`,
-      element: randomElement,
-      createdAt: Date.now(),
-    };
-
+    const initialOrb = { id: `orb_initial_${Date.now()}`, element: randomElement, createdAt: Date.now() };
     const newSave = createInitialSave(initialOrb);
     writeSave(newSave);
     setSave(newSave);
@@ -117,48 +89,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setSave((prev) => {
       if (!prev) return prev;
       const updated = updater(prev);
-
       const validation = validateSave(updated);
-      if (!validation.isValid) {
-        console.error('[GameContext] Save update would create invalid state!', validation.errors);
-        setValidationErrors(validation.errors);
-        setCurrentScreen('InvalidSaveState');
-        return prev;
-      }
-
+      if (!validation.isValid) { console.error('[GameContext] Save update would create invalid state!', validation.errors); setValidationErrors(validation.errors); setCurrentScreen('InvalidSaveState'); return prev; }
       writeSave(updated);
-
       const newScreen = resolveScreen(updated);
       setCurrentScreen(newScreen);
-
       return updated;
     });
   }, []);
 
-  const clearSave = useCallback(() => {
-    deleteSave();
-    setSave(null);
-    setValidationErrors([]);
-    setCurrentScreen('Onboarding');
-  }, []);
-
-  const navigateTo = useCallback((screen: AppScreen) => {
-    setCurrentScreen(screen);
-  }, []);
+  const clearSave = useCallback(() => { deleteSave(); setSave(null); setValidationErrors([]); setCurrentScreen('Onboarding'); }, []);
+  const navigateTo = useCallback((screen: AppScreen) => { setCurrentScreen(screen); }, []);
 
   return (
-    <GameContext.Provider
-      value={{
-        currentScreen,
-        save,
-        validationErrors,
-        isLoading,
-        startNewGame,
-        updateSave,
-        clearSave,
-        navigateTo,
-      }}
-    >
+    <GameContext.Provider value={{ currentScreen, save, validationErrors, isLoading, startNewGame, updateSave, clearSave, navigateTo }}>
       {children}
     </GameContext.Provider>
   );

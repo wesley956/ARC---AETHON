@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — CRYSTAL DISPLAY
-// Mobile-optimized crystal inventory.
 // ============================================================
 
 import { CrystalInventory } from '../types/game';
@@ -35,15 +34,10 @@ export default function CrystalDisplay({ crystals, compact = false }: CrystalDis
       </div>
       <div className="grid grid-cols-3 gap-3">
         {mvpCrystals.map((element) => (
-          <div 
-            key={element} 
-            className="flex flex-col items-center gap-1.5 p-3 bg-[#1a1a24]/50 rounded-xl"
-          >
+          <div key={element} className="flex flex-col items-center gap-1.5 p-3 bg-[#1a1a24]/50 rounded-xl">
             <span className="text-2xl sm:text-3xl">{ELEMENT_EMOJI[element]}</span>
             <span className="text-xl font-bold text-[#e8e8ec]">{crystals[element]}</span>
-            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">
-              {ELEMENT_LABELS[element]}
-            </span>
+            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">{ELEMENT_LABELS[element]}</span>
           </div>
         ))}
       </div>

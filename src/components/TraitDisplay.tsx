@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — TRAIT DISPLAY
-// Mobile-optimized personality traits.
 // ============================================================
 
 import { PersonalityTraits, TraitKey } from '../types/game';
@@ -12,9 +11,7 @@ interface TraitDisplayProps {
 }
 
 export default function TraitDisplay({ traits, showAll = false }: TraitDisplayProps) {
-  const sortedTraits = (Object.entries(traits) as [TraitKey, number][])
-    .sort((a, b) => b[1] - a[1]);
-
+  const sortedTraits = (Object.entries(traits) as [TraitKey, number][]).sort((a, b) => b[1] - a[1]);
   const visibleTraits = showAll ? sortedTraits : sortedTraits.slice(0, 3);
   const activeTraits = visibleTraits.filter(([, value]) => value > 0.15);
 
@@ -25,9 +22,7 @@ export default function TraitDisplay({ traits, showAll = false }: TraitDisplayPr
           <span className="text-xl">🧠</span>
           <h3 className="font-medium text-[#e8e8ec]">Personalidade</h3>
         </div>
-        <p className="text-sm text-[#6a6a7a] italic text-center py-2">
-          A personalidade ainda está se formando...
-        </p>
+        <p className="text-sm text-[#6a6a7a] italic text-center py-2">A personalidade ainda está se formando...</p>
       </div>
     );
   }
@@ -51,10 +46,7 @@ export default function TraitDisplay({ traits, showAll = false }: TraitDisplayPr
                 <span className="text-xs text-[#6a6a7a]">{percentage}%</span>
               </div>
               <div className="w-full h-2 bg-[#1a1a24] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#a78bfa] to-[#c4b5fd] rounded-full transition-all duration-500"
-                  style={{ width: `${percentage}%` }}
-                />
+                <div className="h-full bg-gradient-to-r from-[#a78bfa] to-[#c4b5fd] rounded-full transition-all duration-500" style={{ width: `${percentage}%` }} />
               </div>
             </div>
           );
