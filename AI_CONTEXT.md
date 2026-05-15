@@ -8,7 +8,7 @@ https://github.com/wesley956/ARC---AETHON
 
 ## Estado atual
 
-Projeto aprovado até o **Prompt 8**.
+Projeto aprovado até o **Prompt 9**.
 
 Já existe:
 
@@ -16,7 +16,7 @@ Já existe:
 - Save local
 - Validação de save
 - Normalização de saves antigos
-- GameContext
+- GameContext (StrictMode fix aplicado)
 - TimeManager
 - Taxonomia Dracônica
 - Onboarding
@@ -37,10 +37,14 @@ Já existe:
 - Conforto do ninho
 - Diário narrativo do ninho
 - Compatibilidade com saves antigos
+- **Mobile-first polish completo**
+- **Touch-friendly interactions**
+- **Fixed bottom navigation**
+- **Safe area support**
 
 ## Próximo prompt
 
-docs/prompts/PROMPT_9_polimento_mobile_funcional.txt
+docs/prompts/PROMPT_10_polimento_visual_egg_hatch.txt
 
 ## Regras críticas
 
@@ -56,4 +60,3 @@ docs/prompts/PROMPT_9_polimento_mobile_funcional.txt
 - Materiais alimentam o sistema de ninho.
 - Profissões emergem da história, não são escolhidas diretamente.
 - Não implementar profissões completas ainda.
-- Não fazer polish visual pesado antes de fechar o ciclo funcional.

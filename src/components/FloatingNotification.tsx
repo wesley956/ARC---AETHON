@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — FLOATING NOTIFICATION
+// Mobile-optimized notification toast.
 // ============================================================
 
 import { useEffect, useState } from 'react';
@@ -35,21 +36,27 @@ export default function FloatingNotification({
   if (!isVisible) return null;
 
   const bgColor = {
-    success: 'bg-green-900/90 border-green-700',
-    error: 'bg-red-900/90 border-red-700',
-    info: 'bg-purple-900/90 border-purple-700',
+    success: 'bg-green-900/95 border-green-700/50',
+    error: 'bg-red-900/95 border-red-700/50',
+    info: 'bg-purple-900/95 border-purple-700/50',
   }[type];
 
   return (
     <div
       className={`
-        fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]
-        px-4 py-3 rounded-xl border shadow-lg
+        fixed top-4 left-4 right-4 z-50 
+        max-w-sm mx-auto
+        px-4 py-3.5 rounded-xl border shadow-lg
+        backdrop-blur-sm
         ${bgColor}
         ${isLeaving ? 'animate-slide-up' : 'animate-slide-down'}
       `}
+      role="alert"
+      aria-live="polite"
     >
-      <p className="text-sm text-white text-center">{message}</p>
+      <p className="text-sm text-white text-center leading-relaxed break-words">
+        {message}
+      </p>
     </div>
   );
 }

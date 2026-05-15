@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — EXPEDITION PANEL
+// Mobile-optimized expedition management.
 // ============================================================
 
 import { useState, useEffect } from 'react';
@@ -33,7 +34,7 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
 
   // Update timers
   useEffect(() => {
-    const interval = setInterval(() => {
+    const updateTimers = () => {
       if (isOnExpedition) {
         const remaining = getExpeditionTimeRemaining(dragon);
         setTimeRemaining(formatTimeRemaining(remaining));
@@ -42,8 +43,10 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
         const remaining = getInjuryTimeRemaining(dragon);
         setInjuryTime(formatTimeRemaining(remaining));
       }
-    }, 1000);
+    };
 
+    updateTimers();
+    const interval = setInterval(updateTimers, 1000);
     return () => clearInterval(interval);
   }, [dragon, isOnExpedition, isInjured]);
 
@@ -76,19 +79,19 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
   if (isOnExpedition) {
     return (
       <div className="bg-[#12121a]/50 rounded-xl border border-blue-700/30 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">{zone.emoji}</span>
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <span className="text-2xl">{zone.emoji}</span>
           <span className="font-medium text-[#e8e8ec]">{zone.name}</span>
-          <span className="text-xs text-blue-300 bg-blue-900/30 px-2 py-0.5 rounded">
-            {currentLayerConfig?.name || 'Camada desconhecida'}
+          <span className="text-xs text-blue-300 bg-blue-900/30 px-2 py-1 rounded">
+            {currentLayerConfig?.name || 'Explorando'}
           </span>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-sm text-blue-300">
+        <div className="space-y-2 mb-4">
+          <p className="text-base text-blue-300">
             {dragon.dragonName} está explorando...
           </p>
-          <p className="text-xs text-[#6a6a7a] italic">
+          <p className="text-sm text-[#6a6a7a] italic">
             "Ele está longe, entre cinzas antigas."
           </p>
         </div>
@@ -96,14 +99,21 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
         {expeditionReady ? (
           <button
             onClick={handleCollect}
-            className="w-full mt-4 py-3 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors"
+            className="
+              w-full py-4 px-6
+              bg-green-700 hover:bg-green-600 active:bg-green-500
+              text-white font-semibold text-base
+              rounded-xl transition-all
+              active:scale-[0.98]
+              animate-pulse-soft
+            "
           >
             🎁 Coletar Recompensas
           </button>
         ) : (
-          <div className="mt-4 text-center">
-            <span className="text-xs text-[#6a6a7a]">Retorna em</span>
-            <p className="text-lg font-mono text-blue-300">{timeRemaining || '--:--:--'}</p>
+          <div className="text-center py-4 bg-[#1a1a24]/50 rounded-xl">
+            <span className="text-xs text-[#6a6a7a] block mb-1">Retorna em</span>
+            <p className="text-2xl font-mono text-blue-300">{timeRemaining || '--:--:--'}</p>
           </div>
         )}
       </div>
@@ -114,16 +124,16 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
   if (isInjured) {
     return (
       <div className="bg-[#12121a]/50 rounded-xl border border-red-700/30 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">🩹</span>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl">🩹</span>
           <span className="font-medium text-red-300">Machucado</span>
         </div>
-        <p className="text-sm text-[#6a6a7a]">
+        <p className="text-sm text-[#a0a0b0] mb-4">
           {dragon.dragonName} precisa descansar antes de explorar novamente.
         </p>
-        <div className="mt-3 text-center">
-          <span className="text-xs text-[#6a6a7a]">Recuperação em</span>
-          <p className="text-lg font-mono text-red-300">{injuryTime || '--:--:--'}</p>
+        <div className="text-center py-4 bg-[#1a1a24]/50 rounded-xl">
+          <span className="text-xs text-[#6a6a7a] block mb-1">Recuperação em</span>
+          <p className="text-2xl font-mono text-red-300">{injuryTime || '--:--:--'}</p>
         </div>
       </div>
     );
@@ -132,69 +142,91 @@ export default function ExpeditionPanel({ dragon, onUpdate, onNotify }: Expediti
   // Show expedition options
   return (
     <div className="space-y-4">
+      {/* Zone Header */}
       <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">{zone.emoji}</span>
-          <h3 className="font-medium text-[#e8e8ec]">{zone.name}</h3>
-        </div>
-        <p className="text-sm text-[#6a6a7a] mb-4">{zone.description}</p>
-
-        <div className="space-y-3">
-          {/* Fronteira */}
-          <div className="bg-[#1a1a24]/50 rounded-lg p-3 border border-[#2a2a3a]/30">
-            <h4 className="text-sm font-medium text-[#e8e8ec] mb-1">
-              🌅 {zone.layers.fronteira.name}
-            </h4>
-            <p className="text-xs text-[#6a6a7a] mb-2">{zone.layers.fronteira.description}</p>
-            <div className="flex items-center gap-2 mb-2 text-xs text-[#6a6a7a]">
-              <span>⏱️ 30min - 2h</span>
-              <span>🛡️ Seguro</span>
-            </div>
-            <button
-              onClick={() => handleStartExpedition('ruinas_de_ignareth', 'fronteira')}
-              disabled={!canStart.canStart}
-              className={`
-                w-full py-2 rounded-lg text-sm font-medium transition-colors
-                ${canStart.canStart
-                  ? 'bg-[#a78bfa] hover:bg-[#9171e8] text-white'
-                  : 'bg-[#2a2a3a] text-[#6a6a7a] cursor-not-allowed'
-                }
-              `}
-            >
-              Explorar Fronteira
-            </button>
-          </div>
-
-          {/* Interior */}
-          <div className="bg-[#1a1a24]/50 rounded-lg p-3 border border-[#2a2a3a]/30">
-            <h4 className="text-sm font-medium text-[#e8e8ec] mb-1">
-              🔥 {zone.layers.interior.name}
-            </h4>
-            <p className="text-xs text-[#6a6a7a] mb-2">{zone.layers.interior.description}</p>
-            <div className="flex items-center gap-2 mb-2 text-xs text-[#6a6a7a]">
-              <span>⏱️ 3h - 6h</span>
-              <span>⚠️ 10% lesão</span>
-            </div>
-            <button
-              onClick={() => handleStartExpedition('ruinas_de_ignareth', 'interior')}
-              disabled={!canStart.canStart}
-              className={`
-                w-full py-2 rounded-lg text-sm font-medium transition-colors
-                ${canStart.canStart
-                  ? 'bg-orange-700 hover:bg-orange-600 text-white'
-                  : 'bg-[#2a2a3a] text-[#6a6a7a] cursor-not-allowed'
-                }
-              `}
-            >
-              Explorar Interior
-            </button>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-3xl">{zone.emoji}</span>
+          <div>
+            <h3 className="font-medium text-[#e8e8ec] text-lg">{zone.name}</h3>
+            <p className="text-xs text-[#6a6a7a]">Zona de Exploração</p>
           </div>
         </div>
-
-        {!canStart.canStart && canStart.reason && (
-          <p className="text-xs text-red-400/70 mt-3 text-center italic">{canStart.reason}</p>
-        )}
+        <p className="text-sm text-[#a0a0b0] leading-relaxed">
+          {zone.description}
+        </p>
       </div>
+
+      {/* Layer Options */}
+      <div className="space-y-3">
+        {/* Fronteira */}
+        <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">🌅</span>
+            <h4 className="font-medium text-[#e8e8ec]">{zone.layers.fronteira.name}</h4>
+          </div>
+          <p className="text-sm text-[#6a6a7a] mb-3">{zone.layers.fronteira.description}</p>
+          <div className="flex items-center gap-3 mb-3 flex-wrap text-xs text-[#a0a0b0]">
+            <span className="flex items-center gap-1">
+              <span>⏱️</span> 30min - 2h
+            </span>
+            <span className="flex items-center gap-1 text-green-400">
+              <span>🛡️</span> Seguro
+            </span>
+          </div>
+          <button
+            onClick={() => handleStartExpedition('ruinas_de_ignareth', 'fronteira')}
+            disabled={!canStart.canStart}
+            className={`
+              w-full py-3.5 px-4 rounded-xl text-base font-medium transition-all
+              active:scale-[0.98]
+              ${canStart.canStart
+                ? 'bg-[#a78bfa] hover:bg-[#9171e8] active:bg-[#8161d8] text-white'
+                : 'bg-[#2a2a3a] text-[#6a6a7a] cursor-not-allowed'
+              }
+            `}
+          >
+            Explorar Fronteira
+          </button>
+        </div>
+
+        {/* Interior */}
+        <div className="bg-[#12121a]/50 rounded-xl border border-orange-700/30 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">🔥</span>
+            <h4 className="font-medium text-[#e8e8ec]">{zone.layers.interior.name}</h4>
+          </div>
+          <p className="text-sm text-[#6a6a7a] mb-3">{zone.layers.interior.description}</p>
+          <div className="flex items-center gap-3 mb-3 flex-wrap text-xs text-[#a0a0b0]">
+            <span className="flex items-center gap-1">
+              <span>⏱️</span> 3h - 6h
+            </span>
+            <span className="flex items-center gap-1 text-orange-400">
+              <span>⚠️</span> 10% lesão
+            </span>
+          </div>
+          <button
+            onClick={() => handleStartExpedition('ruinas_de_ignareth', 'interior')}
+            disabled={!canStart.canStart}
+            className={`
+              w-full py-3.5 px-4 rounded-xl text-base font-medium transition-all
+              active:scale-[0.98]
+              ${canStart.canStart
+                ? 'bg-orange-700 hover:bg-orange-600 active:bg-orange-500 text-white'
+                : 'bg-[#2a2a3a] text-[#6a6a7a] cursor-not-allowed'
+              }
+            `}
+          >
+            Explorar Interior
+          </button>
+        </div>
+      </div>
+
+      {/* Status message */}
+      {!canStart.canStart && canStart.reason && (
+        <p className="text-sm text-red-400/70 text-center px-4">
+          {canStart.reason}
+        </p>
+      )}
     </div>
   );
 }
