@@ -32,15 +32,13 @@ function ScreenRouter() {
     case 'DragonActive':
     case 'DragonOnExpedition':
     case 'ExpeditionReturnReady':
-      return <DragonScreen />;
     case 'NestManagement':
-      return <DragonScreen />;
     case 'DiaryView':
       return <DragonScreen />;
     case 'InvalidSaveState':
       return <InvalidSaveScreen />;
     default:
-      return <OnboardingScreen />;
+      return <SplashScreen />;
   }
 }
 

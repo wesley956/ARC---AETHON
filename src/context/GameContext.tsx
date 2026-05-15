@@ -8,6 +8,7 @@ import { AppScreen, GameSave, MvpOrbElement, SaveValidationResult } from '../typ
 import { loadSave, writeSave, deleteSave, createInitialSave } from '../systems/SaveManager';
 import { validateSave } from '../systems/GameStateValidator';
 import { processOfflineOrbs, applyDailyReset } from '../systems/TimeManager';
+import { normalizeSave } from '../utils/saveNormalizer';
 import { MATURATION_HATCH_THRESHOLD, MVP_ORB_ELEMENTS } from '../constants/gameConstants';
 
 interface GameContextValue {
@@ -66,7 +67,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const validation: SaveValidationResult = validateSave(loaded);
+      // Normalize save to handle old formats before validation
+      const normalizedLoaded = normalizeSave(loaded);
+
+      const validation: SaveValidationResult = validateSave(normalizedLoaded);
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         setCurrentScreen('InvalidSaveState');
@@ -75,7 +79,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      let processedSave = applyDailyReset(loaded);
+      let processedSave = applyDailyReset(normalizedLoaded);
 
       if (processedSave.hasEgg && processedSave.eggData) {
         const updatedEgg = processOfflineOrbs(processedSave.eggData);

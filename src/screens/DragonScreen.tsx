@@ -1,13 +1,13 @@
 // ============================================================
 // ARC: AETHON — DRAGON SCREEN
 // Main screen after dragon birth.
-// Shows dragon info, feeding, diary, expeditions and materials.
+// Shows dragon info, feeding, diary, expeditions, materials, and nest.
 // ============================================================
 
 import { useState, useCallback, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useGame } from '../context/GameContext';
-import { ELEMENT_EMOJI, MAX_VITALITY } from '../constants/gameConstants';
+import { ELEMENT_EMOJI } from '../constants/gameConstants';
 import { getDragonTypeById, getCategoryDisplayName } from '../data/dragonTaxonomy';
 import { feedDragon, getAllFoods } from '../systems/DragonCareSystem';
 import { checkInjuryRecovery, getExpeditionStatusText } from '../systems/ExpeditionSystem';
@@ -19,8 +19,9 @@ import TraitDisplay from '../components/TraitDisplay';
 import FloatingNotification from '../components/FloatingNotification';
 import ExpeditionPanel from '../components/ExpeditionPanel';
 import MaterialDisplay from '../components/MaterialDisplay';
+import NestPanel from '../components/NestPanel';
 
-type Tab = 'status' | 'feed' | 'diary' | 'explore';
+type Tab = 'status' | 'feed' | 'diary' | 'explore' | 'nest';
 
 export default function DragonScreen() {
   const { save, updateSave } = useGame();
@@ -51,7 +52,7 @@ export default function DragonScreen() {
     };
 
     checkRecovery();
-    const interval = setInterval(checkRecovery, 5000); // Check every 5 seconds
+    const interval = setInterval(checkRecovery, 5000);
     return () => clearInterval(interval);
   }, [dragon, updateSave]);
 
@@ -59,7 +60,6 @@ export default function DragonScreen() {
   const handleFeed = useCallback((foodId: string) => {
     if (!dragon) return;
 
-    // Check if on expedition
     const isOnExpedition = dragon.isOnExpedition ?? false;
     if (isOnExpedition) {
       setNotification({ 
@@ -82,8 +82,8 @@ export default function DragonScreen() {
     }
   }, [dragon, updateSave]);
 
-  // Handle expedition update
-  const handleExpeditionUpdate = useCallback((newDragonData: typeof dragon) => {
+  // Handle dragon data update (from expedition/nest)
+  const handleDragonUpdate = useCallback((newDragonData: typeof dragon) => {
     if (!newDragonData) return;
     updateSave((prev) => ({
       ...prev,
@@ -91,8 +91,8 @@ export default function DragonScreen() {
     }));
   }, [updateSave]);
 
-  // Handle notification from expedition
-  const handleExpeditionNotify = useCallback((message: string, type: 'success' | 'error' | 'info') => {
+  // Handle notification from panels
+  const handleNotify = useCallback((message: string, type: 'success' | 'error' | 'info') => {
     setNotification({ message, type });
   }, []);
 
@@ -122,6 +122,9 @@ export default function DragonScreen() {
   const isOnExpedition = dragon.isOnExpedition ?? false;
   const isInjured = dragon.isInjured ?? false;
   const statusText = getExpeditionStatusText(dragon);
+  const diaryEntries = dragon.diaryEntries ?? [];
+  const crystals = dragon.crystals ?? { fire: 0, water: 0, earth: 0, air: 0, metal: 0 };
+  const personalityTraits = dragon.personalityTraits ?? { courage: 0.1, gentleness: 0.1, loyalty: 0.1, curiosity: 0.1, resilience: 0.1 };
 
   return (
     <Layout className="pt-4 px-4 pb-24">
@@ -169,7 +172,7 @@ export default function DragonScreen() {
           }
         `}>
           <span className="text-lg">
-            {isOnExpedition ? '🗺️' : isInjured ? '🩹' : ELEMENT_EMOJI[dragon.dominantElement]}
+            {isOnExpedition ? '🗺️' : isInjured ? '🩹' : ELEMENT_EMOJI[dragon.dominantElement] || '🐉'}
           </span>
           <span className={`text-sm ${isOnExpedition ? 'text-blue-300' : isInjured ? 'text-red-300' : 'text-[#e8e8ec]'}`}>
             {statusText}
@@ -183,18 +186,19 @@ export default function DragonScreen() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 mb-4 bg-[#12121a] p-1 rounded-xl">
+      <div className="flex gap-1 mb-4 bg-[#12121a] p-1 rounded-xl overflow-x-auto">
         {[
           { id: 'status' as Tab, label: '📊', title: 'Status' },
           { id: 'feed' as Tab, label: '🍖', title: 'Alimentar' },
-          { id: 'diary' as Tab, label: '📖', title: 'Diário' },
+          { id: 'nest' as Tab, label: '🏠', title: 'Ninho' },
           { id: 'explore' as Tab, label: '🗺️', title: 'Explorar' },
+          { id: 'diary' as Tab, label: '📖', title: 'Diário' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`
-              flex-1 py-2 rounded-lg text-sm transition-colors
+              flex-1 py-2 px-2 rounded-lg text-sm transition-colors whitespace-nowrap
               ${activeTab === tab.id
                 ? 'bg-[#a78bfa] text-white'
                 : 'text-[#6a6a7a] hover:text-[#e8e8ec]'
@@ -212,149 +216,63 @@ export default function DragonScreen() {
         {/* Status Tab */}
         {activeTab === 'status' && (
           <>
-            {/* Crystals */}
-            <CrystalDisplay crystals={dragon.crystals} />
-
-            {/* Materials */}
+            <CrystalDisplay crystals={crystals} />
             <MaterialDisplay materials={dragon.materials} />
-
-            {/* Personality Traits */}
-            <TraitDisplay traits={dragon.personalityTraits} />
-
-            {/* Quick Stats */}
-            <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📈</span>
-                <h3 className="font-medium text-[#e8e8ec]">Informações</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-[#1a1a24]/50 rounded-lg p-3">
-                  <p className="text-[#6a6a7a] text-xs">Status</p>
-                  <p className="text-[#e8e8ec] font-medium">
-                    {isOnExpedition ? '🗺️ Em expedição' : isInjured ? '🩹 Machucado' : '🏠 No ninho'}
-                  </p>
-                </div>
-                <div className="bg-[#1a1a24]/50 rounded-lg p-3">
-                  <p className="text-[#6a6a7a] text-xs">Memórias</p>
-                  <p className="text-[#e8e8ec] font-medium">
-                    {(dragon.diaryEntries ?? []).length} entrada{(dragon.diaryEntries ?? []).length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Lore */}
-            {dragonType?.lore && (
-              <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">📜</span>
-                  <h3 className="font-medium text-[#e8e8ec]">Origem</h3>
-                </div>
-                <p className="text-sm text-[#6a6a7a] italic leading-relaxed">
-                  "{dragonType.lore}"
-                </p>
-              </div>
-            )}
+            <TraitDisplay traits={personalityTraits} />
           </>
         )}
 
         {/* Feed Tab */}
         {activeTab === 'feed' && (
-          <>
-            {/* Expedition warning */}
-            {isOnExpedition && (
-              <div className="bg-blue-900/20 border border-blue-700/50 rounded-xl p-3 text-center">
-                <p className="text-sm text-blue-300">
-                  🗺️ {dragon.dragonName} está em expedição. Aguarde o retorno para alimentá-lo.
-                </p>
+          <div className="space-y-3">
+            <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🍖</span>
+                <h3 className="font-medium text-[#e8e8ec]">Alimentação</h3>
               </div>
-            )}
-
-            {/* Crystal inventory compact */}
-            <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#6a6a7a]">Seus cristais:</span>
-                <CrystalDisplay crystals={dragon.crystals} compact />
-              </div>
-            </div>
-
-            {/* Vitality warning */}
-            {dragon.vitality >= MAX_VITALITY && (
-              <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-3 text-center">
-                <p className="text-sm text-green-300">
-                  ✨ {dragon.dragonName} está completamente satisfeito!
-                </p>
-              </div>
-            )}
-
-            {/* Food list */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-[#e8e8ec]">Comidas disponíveis</h3>
-              {foods.map((food) => (
-                <FoodCard
-                  key={food.id}
-                  recipe={food}
-                  crystals={dragon.crystals}
-                  onFeed={handleFeed}
-                  vitalityFull={dragon.vitality >= MAX_VITALITY}
-                  disabled={isOnExpedition}
-                />
-              ))}
-            </div>
-
-            {/* Feeding tip */}
-            <div className="bg-[#12121a]/30 rounded-lg p-3 text-center">
-              <p className="text-xs text-[#6a6a7a]">
-                💡 Cada comida influencia a personalidade do dragão de forma diferente.
+              <p className="text-sm text-[#6a6a7a] mb-4">
+                Cada alimento fortalece seu dragão de formas diferentes.
               </p>
+              <div className="space-y-2">
+                {foods.map((food) => (
+                  <FoodCard
+                    key={food.id}
+                    recipe={food}
+                    crystals={crystals}
+                    vitality={dragon.vitality}
+                    isOnExpedition={isOnExpedition}
+                    isInjured={isInjured}
+                    onFeed={handleFeed}
+                  />
+                ))}
+              </div>
             </div>
-          </>
+          </div>
         )}
 
-        {/* Diary Tab */}
-        {activeTab === 'diary' && (
-          <>
-            <DiaryList entries={dragon.diaryEntries ?? []} maxVisible={5} />
-
-            <div className="bg-[#12121a]/30 rounded-lg p-3 text-center">
-              <p className="text-xs text-[#6a6a7a]">
-                📖 O diário registra as memórias de {dragon.dragonName}.
-              </p>
-            </div>
-          </>
+        {/* Nest Tab */}
+        {activeTab === 'nest' && (
+          <NestPanel
+            dragon={dragon}
+            onUpdate={handleDragonUpdate}
+            onNotify={handleNotify}
+          />
         )}
 
         {/* Explore Tab */}
         {activeTab === 'explore' && (
-          <>
-            {/* Expeditions */}
-            <ExpeditionPanel
-              dragon={dragon}
-              onUpdate={handleExpeditionUpdate}
-              onNotify={handleExpeditionNotify}
-            />
+          <ExpeditionPanel
+            dragon={dragon}
+            onUpdate={handleDragonUpdate}
+            onNotify={handleNotify}
+          />
+        )}
 
-            {/* Nest placeholder */}
-            <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🏠</span>
-                <h3 className="font-medium text-[#e8e8ec]">Ninho</h3>
-              </div>
-              <div className="bg-[#1a1a24]/50 rounded-lg p-4 text-center">
-                <p className="text-sm text-[#6a6a7a]">
-                  O ninho ainda é simples.
-                </p>
-                <p className="text-xs text-[#6a6a7a] mt-2">
-                  Materiais de expedição poderão transformá-lo.
-                </p>
-              </div>
-            </div>
-          </>
+        {/* Diary Tab */}
+        {activeTab === 'diary' && (
+          <DiaryList entries={diaryEntries} maxVisible={10} />
         )}
       </div>
-
-      {/* Bottom padding for debug panel */}
-      <div className="h-16" />
     </Layout>
   );
 }

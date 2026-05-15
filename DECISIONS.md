@@ -12,5 +12,8 @@
 - Dragão da Convergência é único do criador, nasce dos 6 elementos e não é jogável para jogadores comuns.
 - Expedições geram cristais e materiais.
 - Materiais alimentam o sistema de ninho.
+- Ninho usa slots: base, conforto, relíquia.
+- Conforto do ninho é recalculado dos slots (não acumula infinitamente).
 - Profissões emergem da história, não são escolhidas diretamente.
 - Node 22 deve ser usado no Codespace.
+- Saves antigos são normalizados automaticamente para compatibilidade.

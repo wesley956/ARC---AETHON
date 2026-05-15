@@ -10,7 +10,9 @@
 - Prompt 5.1: Correções da DragonScreen.
 - Prompt 6: Expedições e Materiais.
 - Prompt 6.1: Correções de Expedições e Materiais.
+- Prompt 7: Ninho Básico com Materiais + Mini Revisão do Ciclo.
+- Prompt 8: Revisão Geral, Bugfix e Balanceamento do MVP Funcional.
 
 Próximo:
 
-- Prompt 7: Ninho Básico com Materiais + Mini Revisão do Ciclo.
+- Prompt 9: Polimento mobile funcional.
