@@ -37,13 +37,13 @@ function isValidMaterialId(id: string): id is MaterialId {
 
 /**
  * Normalize material inventory from any input format.
- * 
+ *
  * Handles:
  * - undefined/null → empty inventory
  * - old array format [] → empty inventory (no migration)
  * - partial object → fills missing keys with 0
  * - valid object → returns with validated values
- * 
+ *
  * This ensures the app never crashes due to old save formats.
  */
 export function normalizeMaterialInventory(input: unknown): MaterialInventory {
@@ -61,8 +61,6 @@ export function normalizeMaterialInventory(input: unknown): MaterialInventory {
 
   // Handle arrays (old format) - return empty, don't crash
   if (Array.isArray(input)) {
-    // Could potentially migrate old array format here in the future
-    // For now, just return empty to avoid crashes
     return empty;
   }
 
@@ -103,12 +101,33 @@ export function addMaterials(
   toAdd: Partial<MaterialInventory>
 ): MaterialInventory {
   const result = { ...existing };
-  
+
   for (const [key, amount] of Object.entries(toAdd)) {
     if (isValidMaterialId(key) && typeof amount === 'number') {
       result[key] = (result[key] || 0) + amount;
     }
   }
-  
+
+  return result;
+}
+
+/**
+ * Remove materials from an inventory. Returns null if insufficient.
+ */
+export function removeMaterials(
+  existing: MaterialInventory,
+  toRemove: Partial<MaterialInventory>
+): MaterialInventory | null {
+  const result = { ...existing };
+
+  for (const [key, amount] of Object.entries(toRemove)) {
+    if (isValidMaterialId(key) && typeof amount === 'number') {
+      if ((result[key] || 0) < amount) {
+        return null; // Insufficient materials
+      }
+      result[key] = (result[key] || 0) - amount;
+    }
+  }
+
   return result;
 }

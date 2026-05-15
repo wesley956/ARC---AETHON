@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — FLOATING NOTIFICATION
-// Shows temporary feedback messages.
 // ============================================================
 
 import { useEffect, useState } from 'react';
@@ -44,18 +43,13 @@ export default function FloatingNotification({
   return (
     <div
       className={`
-        fixed top-4 left-1/2 -translate-x-1/2 z-50
-        max-w-[90%] w-auto px-4 py-3
-        ${bgColor} border rounded-lg
-        shadow-lg backdrop-blur-sm
-        transition-all duration-300
-        ${isLeaving ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}
-        animate-notification
+        fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]
+        px-4 py-3 rounded-xl border shadow-lg
+        ${bgColor}
+        ${isLeaving ? 'animate-slide-up' : 'animate-slide-down'}
       `}
     >
-      <p className="text-sm text-white text-center leading-relaxed">
-        {message}
-      </p>
+      <p className="text-sm text-white text-center">{message}</p>
     </div>
   );
 }

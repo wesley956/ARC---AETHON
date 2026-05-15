@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — DIARY LIST
-// Shows diary entries with expandable view.
 // ============================================================
 
 import { useState } from 'react';
@@ -14,34 +13,25 @@ interface DiaryListProps {
 export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Sort entries by timestamp descending (newest first)
   const sortedEntries = [...entries].sort((a, b) => b.timestamp - a.timestamp);
   const visibleEntries = isExpanded ? sortedEntries : sortedEntries.slice(0, maxVisible);
   const hasMore = entries.length > maxVisible;
 
   const getCategoryIcon = (category?: string): string => {
     switch (category) {
-      case 'birth':
-        return '🐣';
-      case 'feeding':
-        return '🍖';
-      case 'expedition':
-        return '🗺️';
-      case 'memory':
-        return '💭';
-      case 'milestone':
-        return '⭐';
-      default:
-        return '📖';
+      case 'birth': return '🐣';
+      case 'feeding': return '🍖';
+      case 'expedition': return '🗺️';
+      case 'memory': return '💭';
+      case 'milestone': return '⭐';
+      case 'nest': return '🏠';
+      default: return '📖';
     }
   };
 
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-    });
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
   if (entries.length === 0) {
@@ -56,7 +46,6 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
 
   return (
     <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]/50">
         <div className="flex items-center gap-2">
           <span className="text-lg">📖</span>
@@ -67,13 +56,11 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
         </span>
       </div>
 
-      {/* Entries */}
       <div className="divide-y divide-[#2a2a3a]/30">
         {visibleEntries.map((entry, index) => (
           <div
             key={entry.id}
             className={`p-4 ${index === 0 ? 'bg-[#1a1a24]/30' : ''}`}
-            style={{ animationDelay: `${index * 50}ms` }}
           >
             <div className="flex items-start gap-3">
               <span className="text-lg">{getCategoryIcon(entry.category)}</span>
@@ -90,7 +77,6 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
         ))}
       </div>
 
-      {/* Expand/Collapse button */}
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}

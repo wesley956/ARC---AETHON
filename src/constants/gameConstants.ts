@@ -22,6 +22,7 @@ export const ORB_ON_EGG_MAX = 5;
 
 /** MVP orb elements - typed to MvpOrbElement */
 import type { MvpOrbElement, FoodRecipe, TraitKey, MaterialDefinition, MaterialId } from '../types/game';
+
 export const MVP_ORB_ELEMENTS: readonly MvpOrbElement[] = ['fire', 'water', 'earth'] as const;
 
 // --- ABSORPTION ---

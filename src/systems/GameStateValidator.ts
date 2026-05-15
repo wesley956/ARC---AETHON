@@ -23,27 +23,22 @@ function validateEggData(eggData: unknown, errors: string[]): void {
 
   const e = eggData as Record<string, unknown>;
 
-  // availableOrbs must be array
   if (!Array.isArray(e.availableOrbs)) {
     errors.push('eggData.availableOrbs deve ser um array.');
   }
 
-  // orbsOnEgg must be array
   if (!Array.isArray(e.orbsOnEgg)) {
     errors.push('eggData.orbsOnEgg deve ser um array.');
   }
 
-  // maturationProgress must be number
   if (typeof e.maturationProgress !== 'number') {
     errors.push('eggData.maturationProgress deve ser um número.');
   }
 
-  // lastOrbGenTime must be number
   if (typeof e.lastOrbGenTime !== 'number') {
     errors.push('eggData.lastOrbGenTime deve ser um número.');
   }
 
-  // nightEventDoneToday must be boolean
   if (typeof e.nightEventDoneToday !== 'boolean') {
     errors.push('eggData.nightEventDoneToday deve ser um booleano.');
   }
@@ -60,42 +55,33 @@ function validateDragonData(dragonData: unknown, errors: string[]): void {
 
   const d = dragonData as Record<string, unknown>;
 
-  // dragonName must be string
   if (typeof d.dragonName !== 'string') {
     errors.push('dragonData.dragonName deve ser uma string.');
   }
 
-  // dragonType must exist
   if (!d.dragonType) {
     errors.push('dragonData.dragonType deve existir.');
   }
 
-  // vitality must be number
   if (typeof d.vitality !== 'number') {
     errors.push('dragonData.vitality deve ser um número.');
   }
 
-  // diaryEntries should be array if present
   if (d.diaryEntries !== undefined && !Array.isArray(d.diaryEntries)) {
     errors.push('dragonData.diaryEntries deve ser um array.');
   }
-  // diaryEntries is optional for backward compatibility
 
   // materials can be array (old saves) or object (new format)
-  // We accept both for backward compatibility
   if (d.materials !== undefined && d.materials !== null) {
     if (typeof d.materials !== 'object') {
       errors.push('dragonData.materials deve ser um objeto ou array.');
     }
   }
-  // materials is optional for old saves
 
-  // crystals must exist
   if (!d.crystals || typeof d.crystals !== 'object') {
     errors.push('dragonData.crystals deve ser um objeto.');
   }
 
-  // personalityTraits must exist
   if (!d.personalityTraits || typeof d.personalityTraits !== 'object') {
     errors.push('dragonData.personalityTraits deve ser um objeto.');
   }
@@ -108,7 +94,6 @@ function validateDragonData(dragonData: unknown, errors: string[]): void {
 export function validateSave(save: unknown): SaveValidationResult {
   const errors: string[] = [];
 
-  // Check if save is an object at all
   if (!save || typeof save !== 'object') {
     return { isValid: false, errors: ['Save não é um objeto válido.'] };
   }

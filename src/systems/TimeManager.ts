@@ -52,7 +52,7 @@ export function processOfflineOrbs(eggData: EggData): EggData {
   }
 
   // Generate orbs for each window
-  let newOrbs: Orb[] = [];
+  const newOrbs: Orb[] = [];
   for (let i = 0; i < windowsPassed; i++) {
     const orbsThisWindow = ORB_MIN_PER_WINDOW + Math.floor(Math.random() * (ORB_MAX_PER_WINDOW - ORB_MIN_PER_WINDOW + 1));
     for (let j = 0; j < orbsThisWindow; j++) {
@@ -65,8 +65,6 @@ export function processOfflineOrbs(eggData: EggData): EggData {
   const finalOrbs = combinedOrbs.slice(0, ORB_TRAY_MAX);
 
   // Update lastOrbGenTime
-  // If tray is full, set to now (stop accumulating)
-  // Otherwise, advance by the windows that passed
   const newLastOrbGenTime = finalOrbs.length >= ORB_TRAY_MAX
     ? now
     : eggData.lastOrbGenTime + windowsPassed * ORB_GENERATION_INTERVAL_MS;

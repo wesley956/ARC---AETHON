@@ -1,14 +1,6 @@
 // ============================================================
 // ARC: AETHON — GAME CONTEXT
 // Central state management.
-// Handles save loading, validation, screen routing, and save writes.
-//
-// BOOT SEQUENCE:
-// 1. Load save from localStorage
-// 2. Validate save structure
-// 3. Apply daily reset (if new day)
-// 4. Process offline orbs (if in egg phase)
-// 5. Resolve screen
 // ============================================================
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
@@ -19,16 +11,13 @@ import { processOfflineOrbs, applyDailyReset } from '../systems/TimeManager';
 import { MATURATION_HATCH_THRESHOLD, MVP_ORB_ELEMENTS } from '../constants/gameConstants';
 
 interface GameContextValue {
-  // State
   currentScreen: AppScreen;
   save: GameSave | null;
   validationErrors: string[];
   isLoading: boolean;
-
-  // Actions
   startNewGame: () => void;
   updateSave: (updater: (prev: GameSave) => GameSave) => void;
-  clearSave: () => void; // DEV ONLY
+  clearSave: () => void;
   navigateTo: (screen: AppScreen) => void;
 }
 
@@ -40,9 +29,6 @@ export function useGame(): GameContextValue {
   return ctx;
 }
 
-/**
- * Determine the correct screen based on save state.
- */
 function resolveScreen(save: GameSave): AppScreen {
   if (save.hasDragon && save.dragonData) {
     if (save.dragonData.isOnExpedition) {
@@ -61,12 +47,7 @@ function resolveScreen(save: GameSave): AppScreen {
     return 'EggActive';
   }
 
-  // Fallback: if onboarding isn't done, go to onboarding
-  if (!save.onboardingDone) {
-    return 'Onboarding';
-  }
-
-  // Edge case: onboarding done but no egg/dragon — treat as onboarding
+  if (!save.onboardingDone) return 'Onboarding';
   return 'Onboarding';
 }
 
@@ -75,23 +56,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [save, setSave] = useState<GameSave | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // --- INITIALIZATION (BOOT SEQUENCE) ---
   useEffect(() => {
-    // Simulate a brief splash
     const timer = setTimeout(() => {
-      // Step 1: Load save
       const loaded = loadSave();
 
       if (!loaded) {
-        // No save exists
         setCurrentScreen('Onboarding');
         setIsLoading(false);
         return;
       }
 
-      // Step 2: Validate
       const validation: SaveValidationResult = validateSave(loaded);
-
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         setCurrentScreen('InvalidSaveState');
@@ -100,19 +75,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Step 3: Apply daily reset
       let processedSave = applyDailyReset(loaded);
 
-      // Step 4: Process offline orbs if in egg phase
       if (processedSave.hasEgg && processedSave.eggData) {
         const updatedEgg = processOfflineOrbs(processedSave.eggData);
         processedSave = { ...processedSave, eggData: updatedEgg };
       }
 
-      // Persist changes from daily reset and offline processing
       writeSave(processedSave);
-
-      // Step 5: Resolve screen
       setSave(processedSave);
       setCurrentScreen(resolveScreen(processedSave));
       setIsLoading(false);
@@ -121,8 +91,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // --- ACTIONS ---
-
   const startNewGame = useCallback(() => {
     const randomElement: MvpOrbElement = MVP_ORB_ELEMENTS[Math.floor(Math.random() * MVP_ORB_ELEMENTS.length)];
     const initialOrb = {
@@ -130,6 +98,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       element: randomElement,
       createdAt: Date.now(),
     };
+
     const newSave = createInitialSave(initialOrb);
     writeSave(newSave);
     setSave(newSave);
@@ -141,18 +110,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!prev) return prev;
       const updated = updater(prev);
 
-      // Re-validate after update
       const validation = validateSave(updated);
       if (!validation.isValid) {
         console.error('[GameContext] Save update would create invalid state!', validation.errors);
         setValidationErrors(validation.errors);
         setCurrentScreen('InvalidSaveState');
-        return prev; // Don't apply invalid update
+        return prev;
       }
 
       writeSave(updated);
 
-      // Check if we need to change screens after update
       const newScreen = resolveScreen(updated);
       if (newScreen !== currentScreen) {
         setCurrentScreen(newScreen);
@@ -163,7 +130,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [currentScreen]);
 
   const clearSave = useCallback(() => {
-    // DEV ONLY
     deleteSave();
     setSave(null);
     setValidationErrors([]);

@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — CRYSTAL DISPLAY
-// Shows crystal inventory.
 // ============================================================
 
 import { CrystalInventory } from '../types/game';
@@ -12,7 +11,6 @@ interface CrystalDisplayProps {
 }
 
 export default function CrystalDisplay({ crystals, compact = false }: CrystalDisplayProps) {
-  // Only show MVP crystals (fire, water, earth)
   const mvpCrystals: (keyof CrystalInventory)[] = ['fire', 'water', 'earth'];
 
   if (compact) {
@@ -21,9 +19,7 @@ export default function CrystalDisplay({ crystals, compact = false }: CrystalDis
         {mvpCrystals.map((element) => (
           <div key={element} className="flex items-center gap-1">
             <span className="text-sm">{ELEMENT_EMOJI[element]}</span>
-            <span className="text-sm font-medium text-[#e8e8ec]">
-              {crystals[element]}
-            </span>
+            <span className="text-sm font-medium text-[#e8e8ec]">{crystals[element]}</span>
           </div>
         ))}
       </div>
@@ -38,17 +34,10 @@ export default function CrystalDisplay({ crystals, compact = false }: CrystalDis
       </div>
       <div className="grid grid-cols-3 gap-3">
         {mvpCrystals.map((element) => (
-          <div
-            key={element}
-            className="flex flex-col items-center gap-1 p-2 bg-[#1a1a24]/50 rounded-lg"
-          >
+          <div key={element} className="flex flex-col items-center gap-1 p-2 bg-[#1a1a24]/50 rounded-lg">
             <span className="text-2xl">{ELEMENT_EMOJI[element]}</span>
-            <span className="text-lg font-bold text-[#e8e8ec]">
-              {crystals[element]}
-            </span>
-            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">
-              {ELEMENT_LABELS[element]}
-            </span>
+            <span className="text-lg font-bold text-[#e8e8ec]">{crystals[element]}</span>
+            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">{ELEMENT_LABELS[element]}</span>
           </div>
         ))}
       </div>
