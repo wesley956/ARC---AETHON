@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — ONBOARDING SCREEN
-// First time player experience.
 // ============================================================
 
 import { useState } from 'react';
@@ -42,16 +41,11 @@ export default function OnboardingScreen() {
   return (
     <Layout className="items-center justify-center px-8">
       <div className="flex flex-col items-center gap-8 animate-fade-in" key={step}>
-        {/* Emoji Icon */}
         <div className="text-7xl animate-float">{currentStep.emoji}</div>
-
-        {/* Text Content */}
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold text-[#c4b5fd]">{currentStep.title}</h1>
           <p className="text-base text-[#e8e8ec] leading-relaxed">{currentStep.text}</p>
         </div>
-
-        {/* Progress Dots */}
         <div className="flex gap-2">
           {steps.map((_, i) => (
             <div
@@ -62,8 +56,6 @@ export default function OnboardingScreen() {
             />
           ))}
         </div>
-
-        {/* Continue Button */}
         <button
           onClick={handleNext}
           className="w-full max-w-xs py-4 bg-[#a78bfa] hover:bg-[#9171e8] text-white font-semibold rounded-xl transition-colors"

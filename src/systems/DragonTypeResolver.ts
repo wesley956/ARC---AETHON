@@ -1,17 +1,6 @@
 // ============================================================
 // ARC: AETHON — DRAGON TYPE RESOLVER
 // Resolves dragon type from egg energy data.
-//
-// RULES:
-// - Pure dragon if one element >= 60%
-// - Fused dragon if two elements dominate
-// - Void is passive and NEVER creates Threshold automatically
-// - voidTouched is a narrative flag only
-// - Convergence is NEVER resolved for normal players
-//
-// IMPORTANT:
-// - All resolved type IDs MUST exist in dragonTaxonomy.ts
-// - Fused IDs use explicit mapping, NOT alphabetical sort
 // ============================================================
 
 import { EggData, PublicElementType, ElementType, PersonalityTraits } from '../types/game';
@@ -23,7 +12,7 @@ export interface ResolvedDragonType {
   dragonTypeName: string;
   dominantElement: ElementType;
   secondaryElement: ElementType | null;
-  voidTouched: boolean; // Narrative flag only, NOT a Threshold guarantee
+  voidTouched: boolean;
   elements: ElementType[];
 }
 
@@ -36,19 +25,10 @@ interface ElementRatios {
   metal: number;
 }
 
-/** Pure type threshold - element must be >= this ratio to be "pure" */
 const PURE_THRESHOLD = 0.60;
-
-/** Void threshold to mark as voidTouched (narrative only) */
 const VOID_TOUCHED_THRESHOLD = 0.25;
-
-/** Default fallback type if resolution fails */
 const FALLBACK_TYPE_ID = 'pure_earth';
 
-/**
- * Explicit mapping of element pairs to fused type IDs.
- * These IDs MUST match exactly what's in dragonTaxonomy.ts.
- */
 const FUSED_TYPE_MAP: Record<string, string> = {
   'fire+water': 'fused_fire_water',
   'fire+earth': 'fused_fire_earth',
@@ -62,13 +42,8 @@ const FUSED_TYPE_MAP: Record<string, string> = {
   'air+metal': 'fused_air_metal',
 };
 
-/**
- * Get the pair key for two elements (order-independent).
- * Returns a normalized key that matches FUSED_TYPE_MAP.
- */
 function getPairKey(a: PublicElementType, b: PublicElementType): string {
   const set = new Set([a, b]);
-
   if (set.has('fire') && set.has('water')) return 'fire+water';
   if (set.has('fire') && set.has('earth')) return 'fire+earth';
   if (set.has('water') && set.has('earth')) return 'water+earth';
@@ -79,41 +54,18 @@ function getPairKey(a: PublicElementType, b: PublicElementType): string {
   if (set.has('water') && set.has('metal')) return 'water+metal';
   if (set.has('earth') && set.has('metal')) return 'earth+metal';
   if (set.has('air') && set.has('metal')) return 'air+metal';
-
-  // Fallback (should never happen with valid elements)
-  console.warn(`[DragonTypeResolver] Unknown element pair: ${a}, ${b}. Using fire+water as fallback.`);
   return 'fire+water';
 }
 
-/**
- * Get the fused dragon type ID for two elements.
- * Uses explicit mapping to ensure IDs match taxonomy.
- */
 function getFusedTypeId(elem1: PublicElementType, elem2: PublicElementType): string {
   const pairKey = getPairKey(elem1, elem2);
-  const typeId = FUSED_TYPE_MAP[pairKey];
-
-  if (!typeId) {
-    console.warn(`[DragonTypeResolver] No fused type found for pair: ${pairKey}. Using fallback.`);
-    return FUSED_TYPE_MAP['fire+water'];
-  }
-
-  return typeId;
+  return FUSED_TYPE_MAP[pairKey] || FUSED_TYPE_MAP['fire+water'];
 }
 
-/**
- * Calculate element ratios from egg data.
- */
 function calculateRatios(eggData: EggData): ElementRatios {
-  const total =
-    eggData.fireEnergy +
-    eggData.waterEnergy +
-    eggData.earthEnergy +
-    eggData.airEnergy +
-    eggData.metalEnergy;
+  const total = eggData.fireEnergy + eggData.waterEnergy + eggData.earthEnergy + eggData.airEnergy + eggData.metalEnergy;
 
   if (total === 0) {
-    // Fallback: earth dominates (will lead to pure_earth)
     return { fire: 0, water: 0, earth: 1, air: 0, metal: 0 };
   }
 
@@ -126,48 +78,36 @@ function calculateRatios(eggData: EggData): ElementRatios {
   };
 }
 
-/**
- * Get the two highest elements sorted by ratio.
- */
 function getTopTwoElements(ratios: ElementRatios): [PublicElementType, PublicElementType] {
   const sorted = (Object.entries(ratios) as [PublicElementType, number][])
     .sort((a, b) => b[1] - a[1]);
-
   return [sorted[0][0], sorted[1][0]];
 }
 
-/**
- * Validate that a type ID exists in the taxonomy.
- * Returns the ID if valid, or fallback if not.
- */
 function validateTypeId(typeId: string): string {
   const dragonType = getDragonTypeById(typeId);
-
   if (!dragonType) {
-    console.warn(`[DragonTypeResolver] Type ID "${typeId}" not found in taxonomy. Using fallback: ${FALLBACK_TYPE_ID}`);
     return FALLBACK_TYPE_ID;
   }
-
   return typeId;
 }
 
-/**
- * Resolve dragon type from egg data.
- *
- * IMPORTANT:
- * - This function NEVER creates Threshold dragons automatically
- * - voidTouched is a narrative hint only
- * - Convergence is not resolved here
- * - All returned type IDs are validated against taxonomy
- */
+function capitalizeElement(element: PublicElementType): string {
+  const names: Record<PublicElementType, string> = {
+    fire: 'Fogo',
+    water: 'Água',
+    earth: 'Terra',
+    air: 'Ar',
+    metal: 'Metal',
+  };
+  return names[element];
+}
+
 export function resolveDragonType(eggData: EggData): ResolvedDragonType {
   const ratios = calculateRatios(eggData);
   const [topElement, secondElement] = getTopTwoElements(ratios);
-
-  // Check if void is high enough to mark as voidTouched (narrative only)
   const voidTouched = eggData.voidEnergy >= VOID_TOUCHED_THRESHOLD;
 
-  // Check for pure dragon (dominant element >= 60%)
   if (ratios[topElement] >= PURE_THRESHOLD) {
     const rawTypeId = `pure_${topElement}`;
     const typeId = validateTypeId(rawTypeId);
@@ -183,12 +123,9 @@ export function resolveDragonType(eggData: EggData): ResolvedDragonType {
     };
   }
 
-  // Fused dragon (two elements)
   const rawFusedTypeId = getFusedTypeId(topElement, secondElement);
   const fusedTypeId = validateTypeId(rawFusedTypeId);
   const dragonType = getDragonTypeById(fusedTypeId);
-
-  // Determine dominant based on which has higher ratio
   const dominantElement = ratios[topElement] >= ratios[secondElement] ? topElement : secondElement;
 
   return {
@@ -201,34 +138,13 @@ export function resolveDragonType(eggData: EggData): ResolvedDragonType {
   };
 }
 
-/**
- * Capitalize element name for display.
- */
-function capitalizeElement(element: PublicElementType): string {
-  const names: Record<PublicElementType, string> = {
-    fire: 'Fogo',
-    water: 'Água',
-    earth: 'Terra',
-    air: 'Ar',
-    metal: 'Metal',
-  };
-  return names[element];
-}
-
-/**
- * Get narrative phrase for dragon type.
- * Keys MUST match IDs in dragonTaxonomy.ts.
- */
 export function getDragonNarrativePhrase(typeId: string, voidTouched: boolean): string {
   const phrases: Record<string, string> = {
-    // Pure types
     pure_fire: 'Nascido das brasas de Ignareth. Seus olhos queimam com a memória do mundo.',
     pure_water: 'Das águas paradas de Velun. Ele carrega algo que não deveria ser possível: paz.',
     pure_earth: 'Da terra que não cedeu. Ele está aqui. Ele ficará.',
     pure_air: 'Dos ventos que ainda lembram o céu antigo, ele respirou pela primeira vez.',
     pure_metal: 'Do metal que sobreviveu ao Colapso, nasceu uma vontade que não se dobra.',
-
-    // Fused types - IDs match dragonTaxonomy.ts exactly
     fused_fire_water: 'Fogo e Água em um só. Aethon nunca viu isso antes do Colapso.',
     fused_fire_earth: 'A fúria da terra e do fogo. Prepare-se.',
     fused_water_earth: 'Água e Terra em harmonia. Raro. Precioso.',
@@ -243,7 +159,6 @@ export function getDragonNarrativePhrase(typeId: string, voidTouched: boolean): 
 
   let phrase = phrases[typeId] || 'Ele abriu os olhos. Aethon ficou em silêncio por um instante.';
 
-  // Add subtle void hint if voidTouched (narrative only, NOT revealing Threshold)
   if (voidTouched) {
     phrase += '\n\nPor um instante, algo entre as rachaduras pareceu olhar de volta.';
   }
@@ -251,9 +166,6 @@ export function getDragonNarrativePhrase(typeId: string, voidTouched: boolean): 
   return phrase;
 }
 
-/**
- * Get initial personality traits based on dominant element.
- */
 export function getInitialPersonalityTraits(dominantElement: ElementType, secondaryElement: ElementType | null): PersonalityTraits {
   const baseTraits: PersonalityTraits = {
     courage: 0.1,
@@ -263,43 +175,21 @@ export function getInitialPersonalityTraits(dominantElement: ElementType, second
     resilience: 0.1,
   };
 
-  // Boost based on dominant element
   switch (dominantElement) {
-    case 'fire':
-      baseTraits.courage = 0.3;
-      break;
-    case 'water':
-      baseTraits.gentleness = 0.3;
-      break;
-    case 'earth':
-      baseTraits.loyalty = 0.3;
-      break;
-    case 'air':
-      baseTraits.curiosity = 0.3;
-      break;
-    case 'metal':
-      baseTraits.resilience = 0.3;
-      break;
+    case 'fire': baseTraits.courage = 0.3; break;
+    case 'water': baseTraits.gentleness = 0.3; break;
+    case 'earth': baseTraits.loyalty = 0.3; break;
+    case 'air': baseTraits.curiosity = 0.3; break;
+    case 'metal': baseTraits.resilience = 0.3; break;
   }
 
-  // Smaller boost for secondary element
   if (secondaryElement) {
     switch (secondaryElement) {
-      case 'fire':
-        baseTraits.courage = Math.min(0.4, baseTraits.courage + 0.15);
-        break;
-      case 'water':
-        baseTraits.gentleness = Math.min(0.4, baseTraits.gentleness + 0.15);
-        break;
-      case 'earth':
-        baseTraits.loyalty = Math.min(0.4, baseTraits.loyalty + 0.15);
-        break;
-      case 'air':
-        baseTraits.curiosity = Math.min(0.4, baseTraits.curiosity + 0.15);
-        break;
-      case 'metal':
-        baseTraits.resilience = Math.min(0.4, baseTraits.resilience + 0.15);
-        break;
+      case 'fire': baseTraits.courage = Math.min(0.4, baseTraits.courage + 0.15); break;
+      case 'water': baseTraits.gentleness = Math.min(0.4, baseTraits.gentleness + 0.15); break;
+      case 'earth': baseTraits.loyalty = Math.min(0.4, baseTraits.loyalty + 0.15); break;
+      case 'air': baseTraits.curiosity = Math.min(0.4, baseTraits.curiosity + 0.15); break;
+      case 'metal': baseTraits.resilience = Math.min(0.4, baseTraits.resilience + 0.15); break;
     }
   }
 

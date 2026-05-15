@@ -1,89 +1,62 @@
 // ============================================================
 // ARC: AETHON — FOOD CARD
-// Individual food item for feeding the dragon.
 // ============================================================
 
 import { FoodRecipe, CrystalInventory } from '../types/game';
-import { canAffordFood, getRequiredCrystal } from '../systems/DragonCareSystem';
-import { ELEMENT_EMOJI, ELEMENT_LABELS, TRAIT_LABELS } from '../constants/gameConstants';
+import { ELEMENT_EMOJI } from '../constants/gameConstants';
+import { canAffordFood } from '../systems/DragonCareSystem';
 
 interface FoodCardProps {
   recipe: FoodRecipe;
   crystals: CrystalInventory;
+  vitality: number;
+  isOnExpedition: boolean;
+  isInjured: boolean;
   onFeed: (foodId: string) => void;
-  disabled?: boolean;
-  vitalityFull?: boolean;
 }
 
-export default function FoodCard({ recipe, crystals, onFeed, disabled, vitalityFull }: FoodCardProps) {
+export default function FoodCard({ recipe, crystals, vitality, isOnExpedition, isInjured, onFeed }: FoodCardProps) {
   const canAfford = canAffordFood(crystals, recipe);
-  const requiredElement = getRequiredCrystal(recipe);
-  const requiredAmount = requiredElement ? (recipe.cost[requiredElement] || 0) : 0;
-  const availableAmount = requiredElement ? (crystals[requiredElement] || 0) : 0;
+  const isFull = vitality >= 1.0;
+  const isDisabled = !canAfford || isFull || isOnExpedition || isInjured;
 
-  const isDisabled = disabled || !canAfford || vitalityFull;
-
-  const elementEmoji = requiredElement ? ELEMENT_EMOJI[requiredElement] : '💎';
-  const elementLabel = requiredElement ? ELEMENT_LABELS[requiredElement] : '';
-  const traitLabel = TRAIT_LABELS[recipe.traitPush] || recipe.traitPush;
-
-  // Determine unavailability reason
-  const getUnavailabilityReason = (): string | null => {
-    if (vitalityFull) {
-      return '✨ Ele está completamente satisfeito.';
-    }
-    if (!canAfford) {
-      return `💎 Você precisa de ${requiredAmount} Cristal de ${elementLabel}.`;
-    }
-    return null;
-  };
-
-  const unavailabilityReason = getUnavailabilityReason();
+  let unavailabilityReason = '';
+  if (isOnExpedition) unavailabilityReason = 'Em expedição';
+  else if (isInjured) unavailabilityReason = 'Machucado';
+  else if (isFull) unavailabilityReason = 'Satisfeito';
+  else if (!canAfford) unavailabilityReason = 'Sem cristais';
 
   return (
-    <div className="w-full">
+    <div className="space-y-1">
       <button
-        onClick={() => !isDisabled && onFeed(recipe.id)}
+        onClick={() => onFeed(recipe.id)}
         disabled={isDisabled}
         className={`
-          w-full p-4 rounded-xl border transition-all duration-200
+          w-full p-3 rounded-xl border transition-all text-left
           ${isDisabled
-            ? 'bg-[#12121a]/50 border-[#2a2a3a]/50 opacity-70 cursor-not-allowed'
-            : 'bg-[#12121a] border-[#2a2a3a] hover:border-[#a78bfa]/50 hover:bg-[#1a1a24] active:scale-[0.98]'
+            ? 'bg-[#12121a]/30 border-[#2a2a3a]/30 opacity-50 cursor-not-allowed'
+            : 'bg-[#12121a]/50 border-[#2a2a3a]/50 hover:border-[#a78bfa]/50 active:scale-[0.98]'
           }
         `}
       >
-        <div className="flex items-center gap-4">
-          {/* Food Icon */}
-          <div className="text-3xl">{recipe.emoji}</div>
-
-          {/* Food Info */}
-          <div className="flex-1 text-left">
-            <h4 className={`font-medium ${isDisabled ? 'text-[#6a6a7a]' : 'text-[#e8e8ec]'}`}>
-              {recipe.name}
-            </h4>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{recipe.emoji}</span>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-[#e8e8ec]">{recipe.name}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-[#6a6a7a]">
-                Efeito: +{traitLabel}
-              </span>
+              {Object.entries(recipe.cost).map(([element, cost]) => (
+                <span key={element} className="text-xs text-[#6a6a7a]">
+                  {ELEMENT_EMOJI[element]} {cost}
+                </span>
+              ))}
+              <span className="text-xs text-green-400">+{Math.round(recipe.vitalityGain * 100)}% vida</span>
             </div>
-          </div>
-
-          {/* Cost */}
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${canAfford ? 'bg-[#1a1a24]' : 'bg-red-900/20'}`}>
-            <span>{elementEmoji}</span>
-            <span className={`text-sm font-medium ${canAfford ? 'text-[#e8e8ec]' : 'text-red-400'}`}>
-              {availableAmount}/{requiredAmount}
-            </span>
           </div>
         </div>
       </button>
 
-      {/* Unavailability reason - shown below the card */}
       {unavailabilityReason && (
-        <p className="mt-2 text-xs text-[#6a6a7a] text-center px-2">
-          {unavailabilityReason}
-        </p>
+        <p className="text-xs text-[#6a6a7a] text-center italic">{unavailabilityReason}</p>
       )}
     </div>
   );

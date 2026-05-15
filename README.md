@@ -4,12 +4,13 @@ Repositório oficial:
 
 https://github.com/wesley956/ARC---AETHON
 
-Versão atual deste pacote: **aprovada até o Prompt 6.1**.
+Versão atual deste pacote: **aprovada até o Prompt 8**.
 
 ## Estado atual aprovado
 
 - Fundação do projeto
 - Save e validação
+- Normalização de saves antigos
 - Onboarding
 - EggScreen
 - Orbs
@@ -26,12 +27,15 @@ Versão atual deste pacote: **aprovada até o Prompt 6.1**.
 - Lesão leve
 - Timer de retorno
 - Normalização segura de materiais antigos
+- Ninho básico com slots
+- Conforto do ninho
+- Balanceamento inicial do MVP
 
 ## Próximo passo
 
 Executar:
 
-docs/prompts/PROMPT_7_ninho_basico_materiais.txt
+docs/prompts/PROMPT_9_polimento_mobile_funcional.txt
 
 ## Rodar no Codespace
 

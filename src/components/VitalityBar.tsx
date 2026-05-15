@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — VITALITY BAR
-// Visual representation of dragon vitality.
 // ============================================================
 
 interface VitalityBarProps {
@@ -11,33 +10,27 @@ interface VitalityBarProps {
 export default function VitalityBar({ vitality, showLabel = true }: VitalityBarProps) {
   const percentage = Math.round(vitality * 100);
   const isLow = vitality < 0.3;
-  const isMedium = vitality >= 0.3 && vitality < 0.6;
+  const isMedium = vitality >= 0.3 && vitality < 0.7;
 
   const barColor = isLow
-    ? 'bg-gradient-to-r from-red-600 to-orange-500'
+    ? 'bg-red-500'
     : isMedium
-    ? 'bg-gradient-to-r from-yellow-500 to-green-400'
-    : 'bg-gradient-to-r from-green-500 to-emerald-400';
-
-  const glowColor = isLow
-    ? 'shadow-red-500/30'
-    : isMedium
-    ? 'shadow-yellow-500/30'
-    : 'shadow-green-500/30';
+    ? 'bg-yellow-500'
+    : 'bg-green-500';
 
   return (
-    <div className="w-full">
+    <div className="space-y-1">
       {showLabel && (
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex items-center justify-between">
           <span className="text-xs text-[#6a6a7a]">Vitalidade</span>
-          <span className={`text-xs font-medium ${isLow ? 'text-red-400' : 'text-green-400'}`}>
+          <span className={`text-xs font-medium ${isLow ? 'text-red-400' : 'text-[#e8e8ec]'}`}>
             {percentage}%
           </span>
         </div>
       )}
-      <div className="w-full h-3 bg-[#1a1a24] rounded-full overflow-hidden border border-[#2a2a3a]">
+      <div className="w-full h-2 bg-[#1a1a24] rounded-full overflow-hidden">
         <div
-          className={`h-full ${barColor} rounded-full transition-all duration-500 ease-out shadow-lg ${glowColor}`}
+          className={`h-full ${barColor} rounded-full transition-all duration-500`}
           style={{ width: `${percentage}%` }}
         />
       </div>

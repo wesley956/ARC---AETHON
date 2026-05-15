@@ -50,7 +50,7 @@ export default function InvalidSaveScreen() {
           onClick={clearSave}
           className="w-full py-3 bg-red-900 hover:bg-red-800 text-red-200 font-semibold rounded-xl transition-colors border border-red-700"
         >
-          🗑️ Limpar Save e Recomeçar
+          🗑️ [DEV ONLY] Limpar Save e Recomeçar
         </button>
 
         <p className="text-[10px] text-[#6a6a7a]">

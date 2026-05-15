@@ -61,7 +61,7 @@ export interface DiaryEntry {
   dayNumber: number;
   text: string;
   timestamp: number;
-  category?: 'birth' | 'feeding' | 'expedition' | 'memory' | 'milestone';
+  category?: 'birth' | 'feeding' | 'expedition' | 'memory' | 'milestone' | 'nest';
 }
 
 // --- MATERIALS ---
@@ -118,14 +118,30 @@ export interface InjuryState {
 
 // --- NEST ---
 
+export type NestSlotType = 'base' | 'comfort' | 'relic';
+
+export type NestStyle = 'basic' | 'warm' | 'stone' | 'memory';
+
+export interface NestSlot {
+  id: string;
+  name: string;
+  materialId: MaterialId;
+  slotType: NestSlotType;
+  comfortBonus: number;
+  elementalAffinity?: ElementType;
+  description: string;
+}
+
 export interface NestData {
-  base: string | null;
-  coating: string | null; // revestimento
-  heatSource: string | null; // fonte de calor
-  comfortObject: string | null; // objeto de conforto
-  relic: string | null; // relíquia
-  elementalAmbience: string | null; // ambiente elemental
-  comfortLevel: number;
+  comfort: number;
+  style: NestStyle;
+  slots: {
+    base: NestSlot | null;
+    comfort: NestSlot | null;
+    relic: NestSlot | null;
+  };
+  appliedUpgrades: string[];
+  lastUpdatedAt: string | null;
 }
 
 // --- PROFESSIONS ---
@@ -134,7 +150,12 @@ export interface ProfessionProgress {
   discoveredProfession: string | null;
   professionXp: number;
   professionLevel: number;
-  hints: string[]; // narrative hints toward a profession
+  hints: string[];
+  tendencies?: {
+    guardian?: number;
+    forge?: number;
+    memory?: number;
+  };
 }
 
 // --- CRYSTALS ---
@@ -150,9 +171,9 @@ export interface CrystalInventory {
 // --- PERSONALITY ---
 
 export interface PersonalityTraits {
-  courage: number;   // Corajoso
+  courage: number; // Corajoso
   gentleness: number; // Gentil
-  loyalty: number;   // Leal
+  loyalty: number; // Leal
   curiosity: number; // Curioso
   resilience: number; // Resiliente
 }
@@ -165,7 +186,7 @@ export type DragonLineageCategory =
   | 'pure'
   | 'fused_public'
   | 'threshold_variant' // Limiar — internal only
-  | 'convergence';      // Unique creator dragon
+  | 'convergence'; // Unique creator dragon
 
 export interface DragonType {
   id: string;
@@ -184,27 +205,27 @@ export interface DragonData {
   dominantElement: ElementType;
   vitality: number; // 0..1 (percentage)
   personalityTraits: PersonalityTraits;
-  
+
   // Expedition state
   isOnExpedition: boolean;
   expeditionEndTime: number | null;
   expeditionZoneId: ExpeditionZoneId | null;
   expeditionLayerId: ExpeditionLayerId | null;
   expeditionStartTime: number | null;
-  
+
   // Injury state
   isInjured: boolean;
   recoveryTime: number | null;
-  
+
   // Collections
   diaryEntries: DiaryEntry[];
   crystals: CrystalInventory;
   materials: MaterialInventory;
-  
+
   // Nest and profession
   nestData: NestData;
   professionProgress: ProfessionProgress;
-  
+
   // Feeding tracking
   foodsEatenFirstTime: string[]; // Track first-time foods for special diary entries
 }

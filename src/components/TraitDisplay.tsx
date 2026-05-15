@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — TRAIT DISPLAY
-// Shows personality traits of the dragon.
 // ============================================================
 
 import { PersonalityTraits, TraitKey } from '../types/game';
@@ -12,14 +11,10 @@ interface TraitDisplayProps {
 }
 
 export default function TraitDisplay({ traits, showAll = false }: TraitDisplayProps) {
-  // Get traits sorted by value
   const sortedTraits = (Object.entries(traits) as [TraitKey, number][])
     .sort((a, b) => b[1] - a[1]);
 
-  // Show top 3 or all
   const visibleTraits = showAll ? sortedTraits : sortedTraits.slice(0, 3);
-
-  // Only show traits above base level (0.1)
   const activeTraits = visibleTraits.filter(([, value]) => value > 0.15);
 
   if (activeTraits.length === 0) {
@@ -29,9 +24,7 @@ export default function TraitDisplay({ traits, showAll = false }: TraitDisplayPr
           <span className="text-lg">🧠</span>
           <h3 className="font-medium text-[#e8e8ec]">Personalidade</h3>
         </div>
-        <p className="text-sm text-[#6a6a7a] italic">
-          A personalidade ainda está se formando...
-        </p>
+        <p className="text-sm text-[#6a6a7a] italic">A personalidade ainda está se formando...</p>
       </div>
     );
   }
@@ -45,15 +38,12 @@ export default function TraitDisplay({ traits, showAll = false }: TraitDisplayPr
       <div className="space-y-2">
         {activeTraits.map(([trait, value]) => {
           const percentage = Math.round(value * 100);
-          const emoji = TRAIT_EMOJI[trait] || '✨';
-          const label = TRAIT_LABELS[trait] || trait;
-
           return (
             <div key={trait} className="space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">{emoji}</span>
-                  <span className="text-sm text-[#e8e8ec]">{label}</span>
+                  <span className="text-sm">{TRAIT_EMOJI[trait] || '✨'}</span>
+                  <span className="text-sm text-[#e8e8ec]">{TRAIT_LABELS[trait] || trait}</span>
                 </div>
                 <span className="text-xs text-[#6a6a7a]">{percentage}%</span>
               </div>

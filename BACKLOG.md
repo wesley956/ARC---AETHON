@@ -2,12 +2,10 @@
 
 ## Próximo agora
 
-Prompt 7 — Ninho Básico com Materiais + Mini Revisão do Ciclo.
+Prompt 9 — Polimento mobile funcional.
 
 ## Depois
 
-Prompt 8 — Revisão Geral e Balanceamento do MVP.
-Prompt 9 — Polimento mobile funcional.
 Prompt 10 — Polimento visual Egg/Hatch.
 Prompt 11 — Polimento visual Dragon/Ninho/Expedição.
 Prompt 12 — PWA / instalação mobile.

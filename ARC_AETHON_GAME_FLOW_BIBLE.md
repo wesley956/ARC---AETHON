@@ -68,8 +68,21 @@ Sistemas atuais:
 
 ## Ninho
 
-Próximo sistema.
+Sistema implementado.
 
 O ninho é a casa emocional do dragão.
 
 Expedições geram materiais → materiais alteram o ninho → ninho influencia conforto, estética e profissões futuras.
+
+Slots:
+- Base (Pedra Antiga → +10 conforto, estilo stone)
+- Conforto (Cinza Viva → +8 conforto, estilo warm)
+- Relíquia (Eco de Memória → +5 conforto, estilo memory)
+
+Conforto máximo: 100.
+Conforto é recalculado dos slots ativos (não acumula infinitamente).
+
+## Profissões
+
+Ainda não implementadas.
+Tendências são registradas pelo ninho.
