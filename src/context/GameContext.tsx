@@ -11,7 +11,7 @@
 // 5. Resolve screen
 // ============================================================
 
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { AppScreen, GameSave, MvpOrbElement, SaveValidationResult } from '../types/game';
 import { loadSave, writeSave, deleteSave, createInitialSave } from '../systems/SaveManager';
 import { validateSave } from '../systems/GameStateValidator';
@@ -75,13 +75,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [save, setSave] = useState<GameSave | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const initialized = useRef(false);
-
   // --- INITIALIZATION (BOOT SEQUENCE) ---
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
     // Simulate a brief splash
     const timer = setTimeout(() => {
       // Step 1: Load save
