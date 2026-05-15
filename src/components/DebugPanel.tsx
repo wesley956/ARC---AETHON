@@ -1,6 +1,7 @@
 // ============================================================
 // ARC: AETHON — DEBUG PANEL
 // ⚠️ DEV ONLY — Must NEVER be shown in production.
+// Mobile-friendly debug controls.
 // ============================================================
 
 import { useState } from 'react';
@@ -18,7 +19,6 @@ export default function DebugPanel() {
   const isDev = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   
-  // Also show if explicitly set (for testing in deployed environments)
   if (!isDev) return null;
 
   const addTestOrbs = (count: number) => {
@@ -111,7 +111,6 @@ export default function DebugPanel() {
     }));
   };
 
-  // DEV ONLY: Clear nest data
   const clearNest = () => {
     if (!save?.dragonData) return;
     const defaultNest = {
@@ -132,87 +131,92 @@ export default function DebugPanel() {
   const nestData = save?.dragonData ? normalizeNestData(save.dragonData.nestData) : null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto">
+    <div className="fixed bottom-16 right-2 z-50">
+      {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute bottom-2 right-2 bg-red-900/80 text-red-300 text-xs px-2 py-1 rounded border border-red-700 font-mono"
+        className="
+          bg-red-900/90 text-red-300 
+          text-xs px-3 py-2 rounded-lg 
+          border border-red-700 
+          font-mono shadow-lg
+          active:scale-95 transition-transform
+        "
+        aria-label={isOpen ? 'Fechar painel de debug' : 'Abrir painel de debug'}
       >
-        {isOpen ? '✕ DEV' : '⚙ DEV'}
+        {isOpen ? '✕ DEV' : '⚙️ DEV'}
       </button>
 
+      {/* Panel */}
       {isOpen && (
-        <div className="bg-gray-950/95 border-t border-red-800 p-3 text-xs font-mono text-gray-300 max-h-[50vh] overflow-y-auto">
-          <div className="text-red-400 font-bold mb-2 text-center border border-red-700 rounded py-1 bg-red-950/50">
-            ⚠️ DEV ONLY — NÃO É RECURSO DO JOGO ⚠️
+        <div className="
+          absolute bottom-12 right-0 
+          w-72 max-h-[60vh] overflow-y-auto
+          bg-gray-950/98 border border-red-800 
+          rounded-xl shadow-xl
+          p-3 text-xs font-mono text-gray-300
+          scrollbar-hide
+        ">
+          {/* Warning Header */}
+          <div className="text-red-400 font-bold mb-3 text-center border border-red-700 rounded-lg py-2 bg-red-950/50">
+            ⚠️ DEV ONLY ⚠️
           </div>
 
-          <div className="mb-2">
-            <span className="text-gray-500">Screen:</span>{' '}
+          {/* Screen Info */}
+          <div className="mb-3 p-2 bg-gray-900 rounded-lg">
+            <span className="text-gray-500">Screen: </span>
             <span className="text-yellow-400">{currentScreen}</span>
           </div>
 
+          {/* Save Info */}
           {save && (
-            <div className="mb-2 space-y-1">
-              <div>
-                <span className="text-gray-500">Account:</span>{' '}
-                <span className="text-blue-400">{save.accountId.slice(0, 20)}...</span>
-              </div>
-              <div>
-                <span className="text-gray-500">hasEgg:</span>{' '}
-                <span className={save.hasEgg ? 'text-green-400' : 'text-gray-600'}>{String(save.hasEgg)}</span>
-                {' | '}
-                <span className="text-gray-500">hasDragon:</span>{' '}
-                <span className={save.hasDragon ? 'text-green-400' : 'text-gray-600'}>{String(save.hasDragon)}</span>
+            <div className="mb-3 p-2 bg-gray-900 rounded-lg space-y-1">
+              <div className="flex gap-2">
+                <span className={save.hasEgg ? 'text-green-400' : 'text-gray-600'}>
+                  Egg: {String(save.hasEgg)}
+                </span>
+                <span className={save.hasDragon ? 'text-green-400' : 'text-gray-600'}>
+                  Dragon: {String(save.hasDragon)}
+                </span>
               </div>
 
               {save.eggData && (
-                <div className="bg-gray-900 p-2 rounded mt-1">
-                  <div className="text-purple-400 mb-1">Egg Data:</div>
-                  <div>Maturation: {(save.eggData.maturationProgress * 100).toFixed(1)}%</div>
-                  <div>
-                    {ELEMENT_EMOJI.fire} {save.eggData.fireEnergy.toFixed(2)} |{' '}
-                    {ELEMENT_EMOJI.water} {save.eggData.waterEnergy.toFixed(2)} |{' '}
-                    {ELEMENT_EMOJI.earth} {save.eggData.earthEnergy.toFixed(2)}
-                  </div>
-                  <div>Orbs (tray): {save.eggData.availableOrbs.length}</div>
+                <div className="text-cyan-400">
+                  Mat: {(save.eggData.maturationProgress * 100).toFixed(0)}%
+                  | Orbs: {save.eggData.availableOrbs.length}/{save.eggData.orbsOnEgg.length}
                 </div>
               )}
 
               {save.dragonData && (
-                <div className="bg-gray-900 p-2 rounded mt-1">
-                  <div className="text-purple-400 mb-1">Dragon Data:</div>
-                  <div>Name: {save.dragonData.dragonName}</div>
-                  <div>Type: {save.dragonData.dragonType}</div>
-                  <div>Vitality: {(save.dragonData.vitality * 100).toFixed(1)}%</div>
+                <>
+                  <div className="text-purple-400 truncate">
+                    {save.dragonData.dragonName}
+                  </div>
                   <div>
-                    Crystals: {ELEMENT_EMOJI.fire}{save.dragonData.crystals.fire} |{' '}
-                    {ELEMENT_EMOJI.water}{save.dragonData.crystals.water} |{' '}
+                    Vit: {(save.dragonData.vitality * 100).toFixed(0)}%
+                    | {ELEMENT_EMOJI.fire}{save.dragonData.crystals.fire}
+                    {ELEMENT_EMOJI.water}{save.dragonData.crystals.water}
                     {ELEMENT_EMOJI.earth}{save.dragonData.crystals.earth}
                   </div>
-                  <div>Diary entries: {(save.dragonData.diaryEntries ?? []).length}</div>
-                  <div>Expedition: {save.dragonData.isOnExpedition ? '🗺️ Em curso' : '—'}</div>
-                  <div>Injured: {save.dragonData.isInjured ? '🩹 Sim' : '—'}</div>
                   {nestData && (
-                    <div className="mt-1 border-t border-gray-700 pt-1">
-                      <div className="text-cyan-400">Nest:</div>
-                      <div>Comfort: {nestData.comfort}%</div>
-                      <div>Style: {nestData.style}</div>
-                      <div>Base: {nestData.slots.base?.name || '—'}</div>
-                      <div>Comfort Slot: {nestData.slots.comfort?.name || '—'}</div>
-                      <div>Relic: {nestData.slots.relic?.name || '—'}</div>
-                      <div>Upgrades: {nestData.appliedUpgrades.join(', ') || '—'}</div>
+                    <div className="text-teal-400">
+                      Nest: {nestData.comfort}% | {nestData.style}
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-1 mt-2">
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-1.5">
             {save?.hasEgg && (
               <>
-                <button onClick={() => addTestOrbs(3)} className="bg-blue-900 text-blue-300 px-2 py-1.5 rounded text-xs hover:bg-blue-800">
-                  + 3 Orbs
+                <button 
+                  onClick={() => addTestOrbs(3)} 
+                  className="bg-blue-900 text-blue-300 px-2 py-2 rounded-lg hover:bg-blue-800 active:scale-95"
+                >
+                  + Orbs
                 </button>
                 <button
                   onClick={() => {
@@ -224,42 +228,66 @@ export default function DebugPanel() {
                         : prev.eggData,
                     }));
                   }}
-                  className="bg-yellow-900 text-yellow-300 px-2 py-1.5 rounded text-xs hover:bg-yellow-800"
+                  className="bg-yellow-900 text-yellow-300 px-2 py-2 rounded-lg hover:bg-yellow-800 active:scale-95"
                 >
-                  Max Maturation
+                  100% Mat
                 </button>
               </>
             )}
 
             {save?.hasDragon && (
               <>
-                <button onClick={addTestCrystals} className="bg-purple-900 text-purple-300 px-2 py-1.5 rounded text-xs hover:bg-purple-800">
+                <button 
+                  onClick={addTestCrystals} 
+                  className="bg-purple-900 text-purple-300 px-2 py-2 rounded-lg hover:bg-purple-800 active:scale-95"
+                >
                   + Cristais
                 </button>
-                <button onClick={reduceVitality} className="bg-orange-900 text-orange-300 px-2 py-1.5 rounded text-xs hover:bg-orange-800">
+                <button 
+                  onClick={reduceVitality} 
+                  className="bg-orange-900 text-orange-300 px-2 py-2 rounded-lg hover:bg-orange-800 active:scale-95"
+                >
                   - Vitalidade
                 </button>
-                <button onClick={finishExpeditionNow} className="bg-green-900 text-green-300 px-2 py-1.5 rounded text-xs hover:bg-green-800">
-                  Finish Expedition
+                <button 
+                  onClick={finishExpeditionNow} 
+                  className="bg-green-900 text-green-300 px-2 py-2 rounded-lg hover:bg-green-800 active:scale-95"
+                >
+                  End Expedition
                 </button>
-                <button onClick={clearInjury} className="bg-pink-900 text-pink-300 px-2 py-1.5 rounded text-xs hover:bg-pink-800">
-                  Clear Injury
+                <button 
+                  onClick={clearInjury} 
+                  className="bg-pink-900 text-pink-300 px-2 py-2 rounded-lg hover:bg-pink-800 active:scale-95"
+                >
+                  Heal Injury
                 </button>
-                <button onClick={addTestMaterials} className="bg-teal-900 text-teal-300 px-2 py-1.5 rounded text-xs hover:bg-teal-800">
-                  + Materiais
+                <button 
+                  onClick={addTestMaterials} 
+                  className="bg-teal-900 text-teal-300 px-2 py-2 rounded-lg hover:bg-teal-800 active:scale-95"
+                >
+                  + Materials
                 </button>
-                <button onClick={clearNest} className="bg-amber-900 text-amber-300 px-2 py-1.5 rounded text-xs hover:bg-amber-800">
-                  Clear Ninho
+                <button 
+                  onClick={clearNest} 
+                  className="bg-amber-900 text-amber-300 px-2 py-2 rounded-lg hover:bg-amber-800 active:scale-95"
+                >
+                  Reset Nest
                 </button>
               </>
             )}
           </div>
 
+          {/* Clear Save */}
           <button
             onClick={clearSave}
-            className="w-full mt-2 bg-red-900 text-red-300 px-2 py-1.5 rounded text-xs hover:bg-red-800 border border-red-700"
+            className="
+              w-full mt-3 py-2.5 
+              bg-red-900 text-red-300 
+              rounded-lg border border-red-700
+              hover:bg-red-800 active:scale-95
+            "
           >
-            🗑️ LIMPAR SAVE (DEV ONLY)
+            🗑️ LIMPAR SAVE
           </button>
         </div>
       )}

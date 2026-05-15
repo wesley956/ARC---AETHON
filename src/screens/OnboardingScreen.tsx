@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — ONBOARDING SCREEN
+// Mobile-optimized first time player experience.
 // ============================================================
 
 import { useState } from 'react';
@@ -14,12 +15,12 @@ export default function OnboardingScreen() {
     {
       emoji: '🌍',
       title: 'Bem-vindo a Aethon',
-      text: 'Um mundo que já conheceu glória... e viu tudo ruir. Mas algo permanece.',
+      text: '500 anos atrás, Aethon foi destruído. Os dragões adultos tentaram conter o Colapso. Falharam.',
     },
     {
       emoji: '🥚',
       title: 'Um ovo único',
-      text: 'Você encontrou algo precioso. Um ovo de dragão, o último de sua espécie. Ele pulsa com energias elementais.',
+      text: 'Mas os Guardiões do Próximo Ciclo salvaram os ovos. Você encontrou um. Ele pulsa com energias elementais.',
     },
     {
       emoji: '✨',
@@ -39,26 +40,60 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <Layout className="items-center justify-center px-8">
-      <div className="flex flex-col items-center gap-8 animate-fade-in" key={step}>
-        <div className="text-7xl animate-float">{currentStep.emoji}</div>
-        <div className="text-center space-y-3">
-          <h1 className="text-2xl font-bold text-[#c4b5fd]">{currentStep.title}</h1>
-          <p className="text-base text-[#e8e8ec] leading-relaxed">{currentStep.text}</p>
+    <Layout className="items-center justify-center px-6 py-8">
+      <div 
+        className="flex flex-col items-center gap-6 w-full max-w-sm animate-fade-in" 
+        key={step}
+      >
+        {/* Emoji Icon */}
+        <div 
+          className="text-6xl sm:text-7xl animate-float"
+          role="img"
+          aria-label={currentStep.title}
+        >
+          {currentStep.emoji}
         </div>
-        <div className="flex gap-2">
+
+        {/* Text Content */}
+        <div className="text-center space-y-3 px-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#c4b5fd] break-words">
+            {currentStep.title}
+          </h1>
+          <p className="text-base text-[#e8e8ec] leading-relaxed break-words">
+            {currentStep.text}
+          </p>
+        </div>
+
+        {/* Progress Dots */}
+        <div className="flex gap-2 py-2" role="tablist" aria-label="Progresso">
           {steps.map((_, i) => (
             <div
               key={i}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === step ? 'bg-[#a78bfa]' : 'bg-[#2a2a3a]'
-              }`}
+              role="tab"
+              aria-selected={i === step}
+              className={`
+                w-2.5 h-2.5 rounded-full transition-all duration-300
+                ${i === step 
+                  ? 'bg-[#a78bfa] scale-110' 
+                  : 'bg-[#2a2a3a]'
+                }
+              `}
             />
           ))}
         </div>
+
+        {/* Continue Button */}
         <button
           onClick={handleNext}
-          className="w-full max-w-xs py-4 bg-[#a78bfa] hover:bg-[#9171e8] text-white font-semibold rounded-xl transition-colors"
+          className="
+            w-full max-w-xs py-4 px-6
+            bg-[#a78bfa] hover:bg-[#9171e8] active:bg-[#8161d8]
+            text-white text-base font-semibold
+            rounded-xl transition-all
+            touch-target
+            active:scale-[0.98]
+          "
+          aria-label={step < steps.length - 1 ? 'Continuar para próxima etapa' : 'Começar o jogo'}
         >
           {step < steps.length - 1 ? 'Continuar' : 'Encontrar o Ovo'}
         </button>

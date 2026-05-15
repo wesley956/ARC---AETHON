@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — DIARY LIST
+// Mobile-optimized diary display.
 // ============================================================
 
 import { useState } from 'react';
@@ -10,7 +11,7 @@ interface DiaryListProps {
   maxVisible?: number;
 }
 
-export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
+export default function DiaryList({ entries, maxVisible = 5 }: DiaryListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const sortedEntries = [...entries].sort((a, b) => b.timestamp - a.timestamp);
@@ -36,26 +37,34 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
 
   if (entries.length === 0) {
     return (
-      <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
-        <p className="text-sm text-[#6a6a7a] text-center italic">
-          O diário está vazio...
-        </p>
+      <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="text-4xl">📖</span>
+          <p className="text-sm text-[#6a6a7a] italic">
+            O diário está vazio...
+          </p>
+          <p className="text-xs text-[#6a6a7a]">
+            As memórias do seu dragão aparecerão aqui.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 overflow-hidden">
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]/50">
         <div className="flex items-center gap-2">
-          <span className="text-lg">📖</span>
+          <span className="text-xl">📖</span>
           <h3 className="font-medium text-[#e8e8ec]">Diário</h3>
         </div>
-        <span className="text-xs text-[#6a6a7a]">
-          {entries.length} entrada{entries.length !== 1 ? 's' : ''}
+        <span className="text-xs text-[#6a6a7a] bg-[#1a1a24] px-2 py-1 rounded">
+          {entries.length} {entries.length === 1 ? 'entrada' : 'entradas'}
         </span>
       </div>
 
+      {/* Entries */}
       <div className="divide-y divide-[#2a2a3a]/30">
         {visibleEntries.map((entry, index) => (
           <div
@@ -63,12 +72,12 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
             className={`p-4 ${index === 0 ? 'bg-[#1a1a24]/30' : ''}`}
           >
             <div className="flex items-start gap-3">
-              <span className="text-lg">{getCategoryIcon(entry.category)}</span>
+              <span className="text-xl flex-shrink-0 mt-0.5">{getCategoryIcon(entry.category)}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[#e8e8ec] leading-relaxed">
+                <p className="text-sm text-[#e8e8ec] leading-relaxed break-words">
                   {entry.text}
                 </p>
-                <p className="text-xs text-[#6a6a7a] mt-1">
+                <p className="text-xs text-[#6a6a7a] mt-2">
                   {formatDate(entry.timestamp)}
                 </p>
               </div>
@@ -77,12 +86,21 @@ export default function DiaryList({ entries, maxVisible = 3 }: DiaryListProps) {
         ))}
       </div>
 
+      {/* Expand/Collapse button */}
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full py-3 text-sm text-[#a78bfa] hover:text-[#c4b5fd] transition-colors border-t border-[#2a2a3a]/50"
+          className="
+            w-full py-3.5 
+            text-sm text-[#a78bfa] hover:text-[#c4b5fd] 
+            transition-colors border-t border-[#2a2a3a]/50
+            active:bg-[#1a1a24]/50
+          "
         >
-          {isExpanded ? '▲ Ver menos' : `▼ Ver mais ${entries.length - maxVisible} entrada${entries.length - maxVisible !== 1 ? 's' : ''}`}
+          {isExpanded 
+            ? '▲ Ver menos' 
+            : `▼ Ver mais ${entries.length - maxVisible} ${entries.length - maxVisible === 1 ? 'entrada' : 'entradas'}`
+          }
         </button>
       )}
     </div>

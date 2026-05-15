@@ -1,6 +1,7 @@
 // ============================================================
 // ARC: AETHON — GAME CONTEXT
 // Central state management.
+// Fixed for React StrictMode compatibility.
 // ============================================================
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
@@ -57,6 +58,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [save, setSave] = useState<GameSave | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Boot sequence - runs once on mount
+  // Fixed for StrictMode: no useRef guard needed
   useEffect(() => {
     const timer = setTimeout(() => {
       const loaded = loadSave();
@@ -90,7 +94,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setSave(processedSave);
       setCurrentScreen(resolveScreen(processedSave));
       setIsLoading(false);
-    }, 800);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, []);
@@ -125,13 +129,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       writeSave(updated);
 
       const newScreen = resolveScreen(updated);
-      if (newScreen !== currentScreen) {
-        setCurrentScreen(newScreen);
-      }
+      setCurrentScreen(newScreen);
 
       return updated;
     });
-  }, [currentScreen]);
+  }, []);
 
   const clearSave = useCallback(() => {
     deleteSave();

@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — MATERIAL DISPLAY
+// Mobile-optimized materials inventory.
 // ============================================================
 
 import { MaterialId } from '../types/game';
@@ -25,11 +26,17 @@ export default function MaterialDisplay({ materials, compact = false }: Material
     return (
       <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">🎒</span>
+          <span className="text-xl">🎒</span>
           <h3 className="font-medium text-[#e8e8ec]">Materiais</h3>
         </div>
-        <p className="text-sm text-[#6a6a7a] text-center italic">Nenhum material coletado ainda.</p>
-        <p className="text-xs text-[#6a6a7a] text-center mt-2">Explore expedições para encontrar materiais!</p>
+        <div className="text-center py-4">
+          <p className="text-sm text-[#6a6a7a] italic mb-2">
+            Nenhum material coletado ainda.
+          </p>
+          <p className="text-xs text-[#6a6a7a]">
+            Explore expedições para encontrar materiais!
+          </p>
+        </div>
       </div>
     );
   }
@@ -41,9 +48,12 @@ export default function MaterialDisplay({ materials, compact = false }: Material
           const definition = MATERIAL_DEFINITIONS[materialId];
           if (!definition) return null;
           return (
-            <div key={materialId} className="flex items-center gap-1 px-2 py-1 bg-[#1a1a24] rounded-lg">
-              <span className="text-sm">{definition.emoji}</span>
-              <span className="text-xs text-[#e8e8ec]">{quantity}</span>
+            <div 
+              key={materialId} 
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1a1a24] rounded-lg"
+            >
+              <span className="text-base">{definition.emoji}</span>
+              <span className="text-sm text-[#e8e8ec] font-medium">{quantity}</span>
             </div>
           );
         })}
@@ -54,7 +64,7 @@ export default function MaterialDisplay({ materials, compact = false }: Material
   return (
     <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">🎒</span>
+        <span className="text-xl">🎒</span>
         <h3 className="font-medium text-[#e8e8ec]">Materiais</h3>
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -73,14 +83,14 @@ export default function MaterialDisplay({ materials, compact = false }: Material
             <div
               key={materialId}
               className={`
-                flex items-center gap-2 p-2 rounded-lg bg-[#1a1a24]/50
+                flex items-center gap-3 p-3 rounded-lg bg-[#1a1a24]/50
                 border ${rarityColors[definition.rarity] || 'border-[#6a6a7a]/30'}
               `}
             >
-              <span className="text-xl">{definition.emoji}</span>
+              <span className="text-2xl">{definition.emoji}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-[#e8e8ec] truncate">{definition.name}</p>
-                <p className="text-sm font-bold text-[#a78bfa]">x{quantity}</p>
+                <p className="text-base font-bold text-[#a78bfa]">x{quantity}</p>
               </div>
             </div>
           );

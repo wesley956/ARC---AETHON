@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — CRYSTAL DISPLAY
+// Mobile-optimized crystal inventory.
 // ============================================================
 
 import { CrystalInventory } from '../types/game';
@@ -15,10 +16,10 @@ export default function CrystalDisplay({ crystals, compact = false }: CrystalDis
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {mvpCrystals.map((element) => (
-          <div key={element} className="flex items-center gap-1">
-            <span className="text-sm">{ELEMENT_EMOJI[element]}</span>
+          <div key={element} className="flex items-center gap-1.5">
+            <span className="text-base">{ELEMENT_EMOJI[element]}</span>
             <span className="text-sm font-medium text-[#e8e8ec]">{crystals[element]}</span>
           </div>
         ))}
@@ -29,15 +30,20 @@ export default function CrystalDisplay({ crystals, compact = false }: CrystalDis
   return (
     <div className="bg-[#12121a]/50 rounded-xl border border-[#2a2a3a]/50 p-4">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">💎</span>
+        <span className="text-xl">💎</span>
         <h3 className="font-medium text-[#e8e8ec]">Cristais</h3>
       </div>
       <div className="grid grid-cols-3 gap-3">
         {mvpCrystals.map((element) => (
-          <div key={element} className="flex flex-col items-center gap-1 p-2 bg-[#1a1a24]/50 rounded-lg">
-            <span className="text-2xl">{ELEMENT_EMOJI[element]}</span>
-            <span className="text-lg font-bold text-[#e8e8ec]">{crystals[element]}</span>
-            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">{ELEMENT_LABELS[element]}</span>
+          <div 
+            key={element} 
+            className="flex flex-col items-center gap-1.5 p-3 bg-[#1a1a24]/50 rounded-xl"
+          >
+            <span className="text-2xl sm:text-3xl">{ELEMENT_EMOJI[element]}</span>
+            <span className="text-xl font-bold text-[#e8e8ec]">{crystals[element]}</span>
+            <span className="text-[10px] text-[#6a6a7a] uppercase tracking-wide">
+              {ELEMENT_LABELS[element]}
+            </span>
           </div>
         ))}
       </div>
