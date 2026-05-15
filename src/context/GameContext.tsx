@@ -130,13 +130,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const startNewGame = useCallback(() => {
     const randomElement: MvpOrbElement = MVP_ORB_ELEMENTS[Math.floor(Math.random() * MVP_ORB_ELEMENTS.length)];
-
     const initialOrb = {
       id: `orb_initial_${Date.now()}`,
       element: randomElement,
       createdAt: Date.now(),
     };
-
     const newSave = createInitialSave(initialOrb);
     writeSave(newSave);
     setSave(newSave);
@@ -158,9 +156,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
 
       writeSave(updated);
+
+      // Check if we need to change screens after update
+      const newScreen = resolveScreen(updated);
+      if (newScreen !== currentScreen) {
+        setCurrentScreen(newScreen);
+      }
+
       return updated;
     });
-  }, []);
+  }, [currentScreen]);
 
   const clearSave = useCallback(() => {
     // DEV ONLY

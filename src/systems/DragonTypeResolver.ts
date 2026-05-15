@@ -14,7 +14,7 @@
 // - Fused IDs use explicit mapping, NOT alphabetical sort
 // ============================================================
 
-import { EggData, PublicElementType, ElementType } from '../types/game';
+import { EggData, PublicElementType, ElementType, PersonalityTraits } from '../types/game';
 import { getDragonTypeById } from '../data/dragonTaxonomy';
 
 /** Result of dragon type resolution */
@@ -132,6 +132,7 @@ function calculateRatios(eggData: EggData): ElementRatios {
 function getTopTwoElements(ratios: ElementRatios): [PublicElementType, PublicElementType] {
   const sorted = (Object.entries(ratios) as [PublicElementType, number][])
     .sort((a, b) => b[1] - a[1]);
+
   return [sorted[0][0], sorted[1][0]];
 }
 
@@ -253,8 +254,8 @@ export function getDragonNarrativePhrase(typeId: string, voidTouched: boolean): 
 /**
  * Get initial personality traits based on dominant element.
  */
-export function getInitialPersonalityTraits(dominantElement: ElementType, secondaryElement: ElementType | null) {
-  const baseTraits = {
+export function getInitialPersonalityTraits(dominantElement: ElementType, secondaryElement: ElementType | null): PersonalityTraits {
+  const baseTraits: PersonalityTraits = {
     courage: 0.1,
     gentleness: 0.1,
     loyalty: 0.1,

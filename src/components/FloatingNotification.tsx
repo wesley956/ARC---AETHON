@@ -1,97 +1,61 @@
 // ============================================================
 // ARC: AETHON — FLOATING NOTIFICATION
-// Simple notification system for EggScreen feedback.
+// Shows temporary feedback messages.
 // ============================================================
 
 import { useEffect, useState } from 'react';
 
-interface Notification {
-  id: string;
-  message: string;
-}
-
 interface FloatingNotificationProps {
-  notifications: Notification[];
-  onDismiss: (id: string) => void;
+  message: string;
+  type?: 'success' | 'error' | 'info';
+  duration?: number;
+  onClose?: () => void;
 }
 
-export default function FloatingNotification({ notifications, onDismiss }: FloatingNotificationProps) {
-  return (
-    <div className="fixed top-4 left-0 right-0 z-40 flex flex-col items-center gap-2 pointer-events-none px-4">
-      {notifications.map((notification) => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-          onDismiss={onDismiss}
-        />
-      ))}
-    </div>
-  );
-}
-
-function NotificationItem({
-  notification,
-  onDismiss,
-}: {
-  notification: Notification;
-  onDismiss: (id: string) => void;
-}) {
-  const [isVisible, setIsVisible] = useState(false);
+export default function FloatingNotification({
+  message,
+  type = 'info',
+  duration = 3000,
+  onClose,
+}: FloatingNotificationProps) {
+  const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
-    // Trigger enter animation
-    requestAnimationFrame(() => setIsVisible(true));
-
-    // Start exit after 2.5s
-    const exitTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLeaving(true);
-    }, 2500);
+      setTimeout(() => {
+        setIsVisible(false);
+        onClose?.();
+      }, 300);
+    }, duration);
 
-    // Remove after 3s
-    const removeTimer = setTimeout(() => {
-      onDismiss(notification.id);
-    }, 3000);
+    return () => clearTimeout(timer);
+  }, [duration, onClose]);
 
-    return () => {
-      clearTimeout(exitTimer);
-      clearTimeout(removeTimer);
-    };
-  }, [notification.id, onDismiss]);
+  if (!isVisible) return null;
+
+  const bgColor = {
+    success: 'bg-green-900/90 border-green-700',
+    error: 'bg-red-900/90 border-red-700',
+    info: 'bg-purple-900/90 border-purple-700',
+  }[type];
 
   return (
     <div
       className={`
-        max-w-xs w-full px-4 py-3 rounded-xl
-        bg-aethon-card/95 backdrop-blur-sm
-        border border-aethon-border/60
-        shadow-lg shadow-black/30
-        text-sm text-aethon-text text-center
-        transition-all duration-300 ease-out
-        ${isVisible && !isLeaving ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}
+        fixed top-4 left-1/2 -translate-x-1/2 z-50
+        max-w-[90%] w-auto px-4 py-3
+        ${bgColor} border rounded-lg
+        shadow-lg backdrop-blur-sm
+        transition-all duration-300
+        ${isLeaving ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}
+        animate-notification
       `}
     >
-      {notification.message}
+      <p className="text-sm text-white text-center leading-relaxed">
+        {message}
+      </p>
     </div>
   );
-}
-
-// Hook to manage notifications
-export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  const showNotification = (message: string) => {
-    const id = `notif_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    setNotifications((prev) => [...prev, { id, message }]);
-  };
-
-  const dismissNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  return {
-    notifications,
-    showNotification,
-    dismissNotification,
-  };
 }

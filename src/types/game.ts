@@ -61,10 +61,25 @@ export interface DiaryEntry {
   dayNumber: number;
   text: string;
   timestamp: number;
+  category?: 'birth' | 'feeding' | 'expedition' | 'memory' | 'milestone';
 }
 
 // --- MATERIALS ---
 
+export type MaterialId = 'living_ash' | 'ancient_stone' | 'shell_fragment' | 'memory_echo';
+
+export interface MaterialDefinition {
+  id: MaterialId;
+  name: string;
+  emoji: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+  description: string;
+}
+
+// Material inventory uses a simple record for easy quantity management
+export type MaterialInventory = Record<MaterialId, number>;
+
+// Legacy Material interface (for compatibility)
 export interface Material {
   id: string;
   name: string;
@@ -72,6 +87,33 @@ export interface Material {
   element?: ElementType;
   description?: string;
   quantity: number;
+}
+
+// --- EXPEDITION ---
+
+export type ExpeditionZoneId = 'ruinas_de_ignareth';
+export type ExpeditionLayerId = 'fronteira' | 'interior';
+
+export interface ExpeditionState {
+  isOnExpedition: boolean;
+  zoneId: ExpeditionZoneId | null;
+  layerId: ExpeditionLayerId | null;
+  startTime: number | null;
+  returnTime: number | null;
+}
+
+export interface ExpeditionRewards {
+  crystals: Partial<CrystalInventory>;
+  materials: Partial<MaterialInventory>;
+  wasInjured: boolean;
+  foundMemoryEcho: boolean;
+}
+
+// --- INJURY ---
+
+export interface InjuryState {
+  isInjured: boolean;
+  recoveryTime: number | null; // timestamp when recovery completes
 }
 
 // --- NEST ---
@@ -115,6 +157,8 @@ export interface PersonalityTraits {
   resilience: number; // Resiliente
 }
 
+export type TraitKey = keyof PersonalityTraits;
+
 // --- DRAGON TAXONOMY ---
 
 export type DragonLineageCategory =
@@ -138,15 +182,31 @@ export interface DragonData {
   dragonName: string;
   dragonType: string; // DragonType.id
   dominantElement: ElementType;
-  vitality: number;
+  vitality: number; // 0..1 (percentage)
   personalityTraits: PersonalityTraits;
+  
+  // Expedition state
   isOnExpedition: boolean;
   expeditionEndTime: number | null;
+  expeditionZoneId: ExpeditionZoneId | null;
+  expeditionLayerId: ExpeditionLayerId | null;
+  expeditionStartTime: number | null;
+  
+  // Injury state
+  isInjured: boolean;
+  recoveryTime: number | null;
+  
+  // Collections
   diaryEntries: DiaryEntry[];
   crystals: CrystalInventory;
-  materials: Material[];
+  materials: MaterialInventory;
+  
+  // Nest and profession
   nestData: NestData;
   professionProgress: ProfessionProgress;
+  
+  // Feeding tracking
+  foodsEatenFirstTime: string[]; // Track first-time foods for special diary entries
 }
 
 // --- SAVE ---
@@ -172,4 +232,18 @@ export interface GameSave {
 export interface SaveValidationResult {
   isValid: boolean;
   errors: string[];
+}
+
+// --- FOOD SYSTEM ---
+
+export interface FoodRecipe {
+  id: string;
+  name: string;
+  emoji: string;
+  cost: Partial<CrystalInventory>;
+  vitalityGain: number;
+  traitPush: TraitKey;
+  traitAmount: number;
+  feedMessage: string;
+  diaryEntry: string;
 }

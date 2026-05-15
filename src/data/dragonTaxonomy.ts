@@ -18,6 +18,7 @@ const pureLineages: DragonType[] = [
     category: 'pure',
     elements: ['fire'],
     isHidden: false,
+    lore: 'Nascido das brasas de Ignareth. Seus olhos queimam com a memória do mundo.',
   },
   {
     id: 'pure_water',
@@ -25,6 +26,7 @@ const pureLineages: DragonType[] = [
     category: 'pure',
     elements: ['water'],
     isHidden: false,
+    lore: 'Das águas paradas de Velun. Ele carrega algo que não deveria ser possível: paz.',
   },
   {
     id: 'pure_earth',
@@ -32,6 +34,7 @@ const pureLineages: DragonType[] = [
     category: 'pure',
     elements: ['earth'],
     isHidden: false,
+    lore: 'Da terra que não cedeu. Ele está aqui. Ele ficará.',
   },
   {
     id: 'pure_air',
@@ -39,6 +42,7 @@ const pureLineages: DragonType[] = [
     category: 'pure',
     elements: ['air'],
     isHidden: false,
+    lore: 'Dos ventos que ainda lembram o céu antigo, ele respirou pela primeira vez.',
   },
   {
     id: 'pure_metal',
@@ -46,6 +50,7 @@ const pureLineages: DragonType[] = [
     category: 'pure',
     elements: ['metal'],
     isHidden: false,
+    lore: 'Do metal que sobreviveu ao Colapso, nasceu uma vontade que não se dobra.',
   },
 ];
 
@@ -58,6 +63,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['fire', 'water'],
     isHidden: false,
+    lore: 'Fogo e Água em um só. Aethon nunca viu isso antes do Colapso.',
   },
   {
     id: 'fused_fire_earth',
@@ -65,6 +71,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['fire', 'earth'],
     isHidden: false,
+    lore: 'A fúria da terra e do fogo. Prepare-se.',
   },
   {
     id: 'fused_water_earth',
@@ -72,6 +79,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['water', 'earth'],
     isHidden: false,
+    lore: 'Água e Terra em harmonia. Raro. Precioso.',
   },
   {
     id: 'fused_fire_air',
@@ -79,6 +87,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['fire', 'air'],
     isHidden: false,
+    lore: 'Fogo e Ar se encontraram em cinzas dançantes. Algo veloz demais para ser preso nasceu.',
   },
   {
     id: 'fused_water_air',
@@ -86,6 +95,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['water', 'air'],
     isHidden: false,
+    lore: 'Água e Ar se tornaram névoa viva. Ele parece lembrar lugares onde nunca esteve.',
   },
   {
     id: 'fused_earth_air',
@@ -93,6 +103,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['earth', 'air'],
     isHidden: false,
+    lore: 'Terra e Ar desafiaram o peso do mundo. Ele nasceu entre permanência e liberdade.',
   },
   {
     id: 'fused_fire_metal',
@@ -100,6 +111,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['fire', 'metal'],
     isHidden: false,
+    lore: 'Fogo e Metal cantaram dentro da casca. Uma alma de forja abriu os olhos.',
   },
   {
     id: 'fused_water_metal',
@@ -107,6 +119,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['water', 'metal'],
     isHidden: false,
+    lore: 'Água e Metal fluíram como prata viva. Seu corpo parece mudar com cada reflexo.',
   },
   {
     id: 'fused_earth_metal',
@@ -114,6 +127,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['earth', 'metal'],
     isHidden: false,
+    lore: 'Terra e Metal se fecharam em couraça. Ele nasceu para resistir.',
   },
   {
     id: 'fused_air_metal',
@@ -121,6 +135,7 @@ const fusedPublicLineages: DragonType[] = [
     category: 'fused_public',
     elements: ['air', 'metal'],
     isHidden: false,
+    lore: 'Ar e Metal cortaram o silêncio. Suas asas parecem ouvir o futuro.',
   },
 ];
 
@@ -219,4 +234,15 @@ export function isThresholdDragon(id: string): boolean {
 /** Check if a dragon type is the Convergence */
 export function isConvergenceDragon(id: string): boolean {
   return id === 'convergence';
+}
+
+/** Get category display name */
+export function getCategoryDisplayName(category: string): string {
+  const names: Record<string, string> = {
+    pure: 'Linhagem Pura',
+    fused_public: 'Linhagem Fundida',
+    threshold_variant: 'Linhagem Desconhecida',
+    convergence: 'Linhagem Única',
+  };
+  return names[category] || 'Desconhecido';
 }

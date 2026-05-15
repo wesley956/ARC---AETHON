@@ -5,9 +5,9 @@
 // CENTRAL RULE: One account = one egg OR one dragon, NEVER both.
 //
 // If save is invalid:
-//   - DO NOT auto-reset.
-//   - Route to InvalidSaveScreen.
-//   - Show clear error messages.
+// - DO NOT auto-reset.
+// - Route to InvalidSaveScreen.
+// - Show clear error messages.
 // ============================================================
 
 import { SaveValidationResult, CURRENT_SAVE_VERSION } from '../types/game';
@@ -75,14 +75,29 @@ function validateDragonData(dragonData: unknown, errors: string[]): void {
     errors.push('dragonData.vitality deve ser um número.');
   }
 
-  // diaryEntries must be array
-  if (!Array.isArray(d.diaryEntries)) {
+  // diaryEntries should be array if present
+  if (d.diaryEntries !== undefined && !Array.isArray(d.diaryEntries)) {
     errors.push('dragonData.diaryEntries deve ser um array.');
   }
+  // diaryEntries is optional for backward compatibility
 
-  // materials must be array
-  if (!Array.isArray(d.materials)) {
-    errors.push('dragonData.materials deve ser um array.');
+  // materials can be array (old saves) or object (new format)
+  // We accept both for backward compatibility
+  if (d.materials !== undefined && d.materials !== null) {
+    if (typeof d.materials !== 'object') {
+      errors.push('dragonData.materials deve ser um objeto ou array.');
+    }
+  }
+  // materials is optional for old saves
+
+  // crystals must exist
+  if (!d.crystals || typeof d.crystals !== 'object') {
+    errors.push('dragonData.crystals deve ser um objeto.');
+  }
+
+  // personalityTraits must exist
+  if (!d.personalityTraits || typeof d.personalityTraits !== 'object') {
+    errors.push('dragonData.personalityTraits deve ser um objeto.');
   }
 }
 
@@ -121,6 +136,7 @@ export function validateSave(save: unknown): SaveValidationResult {
   if (typeof hasEgg !== 'boolean') {
     errors.push('hasEgg não é um booleano.');
   }
+
   if (typeof hasDragon !== 'boolean') {
     errors.push('hasDragon não é um booleano.');
   }

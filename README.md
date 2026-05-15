@@ -1,75 +1,53 @@
 # Arc: Aethon
 
-**Arc: Aethon** é um idle mobile narrativo sobre um único ovo de dragão, vínculo emocional, tempo real, mistério e consequência.
+Repositório oficial:
 
-Este repositório contém a versão atual aprovada do projeto após o **Prompt 4.1**.
+https://github.com/wesley956/ARC---AETHON
 
-## Estado atual do projeto
+Versão atual deste pacote: **aprovada até o Prompt 6.1**.
 
-Implementado e aprovado:
+## Estado atual aprovado
 
 - Fundação do projeto
-- Save local
-- Validação de save
-- Roteamento por estado
+- Save e validação
 - Onboarding
-- Tela do Ovo
-- Sistema de Orbs
-- Sistema de Absorção
-- Transição para nascimento
-- HatchScreen / Cena de Nascimento
+- EggScreen
+- Orbs
+- Absorção
+- HatchScreen / nascimento
 - DragonTypeResolver corrigido
-- Criação de `dragonData`
-- Diário Dia 1
-- Transição irreversível de ovo para dragão
+- DragonData e diário Dia 1
+- DragonScreen
+- Alimentação
+- Cristais
+- Diário inicial
+- Expedições
+- Materiais
+- Lesão leve
+- Timer de retorno
+- Normalização segura de materiais antigos
 
-Próximo passo:
+## Próximo passo
 
-- **Prompt 5 — DragonScreen, Alimentação Básica e Diário Inicial**
+Executar:
 
-O Prompt 5 está em:
+docs/prompts/PROMPT_7_ninho_basico_materiais.txt
 
-```text
-docs/prompts/PROMPT_5_dragon_screen_alimentacao_diario.txt
-```
+## Rodar no Codespace
 
-## Rodar localmente
+Este projeto usa Node 22.
 
 ```bash
+nvm use
 npm install
+npm run build
 npm run dev
 ```
 
-## Gerar build
+Se necessário:
 
 ```bash
-npm run build
-```
-
-## Regras principais
-
-- Uma conta = um ovo ou um dragão, nunca os dois.
-- Não existe segundo ovo.
-- Não existe reset narrativo público.
-- Vazio é passivo.
-- O bônus pós-orbs se chama **Absorção**.
-- Dragões do Limiar são ultra raros e exigem controle global futuro.
-- Dragão da Convergência é único do criador e não deve ser jogável para jogadores comuns neste MVP.
-
-## Arquivos importantes para IA
-
-Antes de qualquer IA alterar o projeto, ela deve ler:
-
-```text
-AI_CONTEXT.md
-ARC_AETHON_GAME_FLOW_BIBLE.md
-DECISIONS.md
-PROMPT_HISTORY.md
-BACKLOG.md
-```
-
-Também existe uma versão HTML editável da Bíblia em:
-
-```text
-docs/ARC_AETHON_GAME_FLOW_BIBLE_v1.2_editavel.html
+nvm install 22
+nvm use 22
+nvm alias default 22
 ```

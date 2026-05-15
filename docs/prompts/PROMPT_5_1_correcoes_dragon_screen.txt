@@ -1,0 +1,320 @@
+# ARC: AETHON — PROMPT 5.1
+## Correções pequenas da DragonScreen, Alimentação e Diário
+
+Você está trabalhando no projeto Arc: Aethon.
+
+REPOSITÓRIO OFICIAL:
+https://github.com/wesley956/ARC---AETHON
+
+Antes de alterar qualquer código, leia:
+
+- AI_CONTEXT.md
+- ARC_AETHON_GAME_FLOW_BIBLE.md
+- DECISIONS.md
+- PROMPT_HISTORY.md
+- BACKLOG.md
+- README.md
+
+O projeto está aprovado até o Prompt 5, mas precisa de pequenas correções antes de avançar para expedições.
+
+---
+
+# ESTADO ATUAL
+
+Já foi implementado:
+
+- Fundação do projeto
+- Save local
+- Validação de save
+- Onboarding
+- EggScreen
+- Orbs
+- Absorção
+- HatchScreen
+- DragonTypeResolver
+- DragonFactory
+- Criação de dragonData
+- Diário Dia 1
+- DragonScreen funcional
+- Alimentação básica
+- Diário inicial
+- Cristais
+- Traços
+- Placeholders de expedição e ninho
+
+O build passou no Prompt 5.
+
+---
+
+# IMPORTANTE — NÃO FAÇA ISSO
+
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere o sistema de Orbs e Absorção.
+Não altere a Cena de Nascimento.
+Não implemente expedições ainda.
+Não implemente ninho completo ainda.
+Não implemente profissões completas ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+Não faça polish visual grande agora.
+
+Sua missão é apenas corrigir pontos pequenos da DragonScreen/Alimentação.
+
+---
+
+# PROBLEMA 1 — DRAGÃO NASCE COM VITALIDADE 100%
+
+Hoje o DragonFactory cria o dragão com vitalidade cheia:
+
+vitality: 1.0
+
+Isso faz com que, logo após o nascimento, o jogador veja as comidas mas não consiga alimentar, porque o dragão já está satisfeito.
+
+Isso atrapalha o primeiro loop de vínculo.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 1
+
+Alterar a vitalidade inicial do dragão criado no nascimento.
+
+Usar:
+
+vitality: 0.75
+
+ou uma constante:
+
+INITIAL_DRAGON_VITALITY = 0.75
+
+Critério:
+
+- Depois de nascer, o dragão deve poder comer pelo menos uma comida.
+- A vitalidade continua entre 0 e 1.
+- Não alterar saves já existentes desnecessariamente.
+
+---
+
+# PROBLEMA 2 — SAVES ANTIGOS PODEM NÃO TER foodsEatenFirstTime
+
+No Prompt 5 foi adicionado o campo:
+
+foodsEatenFirstTime: string[]
+
+Mas saves criados antes disso podem não ter esse campo.
+
+Se feedDragon usar:
+
+dragonData.foodsEatenFirstTime.includes(foodId)
+
+e o campo estiver undefined, pode quebrar.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 2
+
+Tornar o uso de foodsEatenFirstTime seguro.
+
+Em qualquer lugar que usar esse campo, aplicar fallback:
+
+const foodsEatenFirstTime = dragonData.foodsEatenFirstTime ?? [];
+
+Ao salvar depois de alimentar, garantir que o campo passe a existir:
+
+foodsEatenFirstTime: updatedFoodsEatenFirstTime
+
+Critério:
+
+- Save antigo sem foodsEatenFirstTime não pode quebrar a alimentação.
+- Depois de alimentar, o save deve passar a ter foodsEatenFirstTime como array.
+- Não resetar save antigo.
+- Não recriar dragonData do zero.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 3 — VALIDAÇÃO / NORMALIZAÇÃO LEVE
+
+Se existir GameStateValidator ou função de normalização de save, ajustar de forma segura para aceitar saves antigos.
+
+Opção preferida:
+
+- Não marcar save antigo como inválido só porque foodsEatenFirstTime está ausente.
+- Se possível, normalizar para [] em algum ponto seguro.
+- Se o projeto não tem sistema de migração, apenas garantir fallback em DragonCareSystem e DragonScreen já é suficiente.
+
+Não criar sistema complexo de migração agora.
+
+Critério:
+
+- Saves antigos continuam abrindo.
+- Saves novos ficam com foodsEatenFirstTime definido.
+
+---
+
+# PROBLEMA 3 — COMIDA DESATIVADA NÃO EXPLICA O MOTIVO
+
+Hoje a FoodCard pode ficar desativada quando:
+
+- não há cristal suficiente;
+- vitalidade está cheia.
+
+Visualmente isso funciona, mas o jogador pode não entender por que não consegue alimentar.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 4
+
+Melhorar o feedback de comida indisponível.
+
+Opções aceitáveis:
+
+## Opção A — Manter botão desabilitado, mas mostrar motivo no card
+
+Se não houver cristal:
+
+"Você precisa de 1 Cristal de Fogo."
+"Você precisa de 1 Cristal de Água."
+"Você precisa de 1 Cristal de Terra."
+
+Se vitalidade estiver cheia:
+
+"Ele está completamente satisfeito."
+
+## Opção B — Permitir clicar mesmo indisponível e mostrar notificação
+
+Se não houver cristal:
+
+"Você não tem cristais suficientes para preparar esta comida."
+
+Se vitalidade estiver cheia:
+
+"Ele está completamente satisfeito."
+
+Escolha a solução mais simples e robusta.
+
+Critério:
+
+- O jogador entende por que não pode alimentar.
+- Não criar compra de cristal.
+- Não criar monetização.
+- Não criar sistema novo desnecessário.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 5 — MANTER TEXTOS NARRATIVOS
+
+Manter mensagens narrativas das comidas:
+
+Brasa Crocante:
+"🔥 Ele devorou a Brasa Crocante com olhos acesos."
+
+Caldo das Marés:
+"💧 Ele bebeu devagar. Por um instante, tudo pareceu mais calmo."
+
+Raiz Dourada:
+"🌍 Ele mastigou a Raiz Dourada e se deitou mais perto de você."
+
+Manter entradas de diário narrativas, não logs técnicos.
+
+Não escrever coisas como:
+
+"+15% vitalidade"
+"Consumiu cristal"
+
+no diário.
+
+---
+
+# O QUE NÃO MEXER
+
+Não alterar:
+
+- regra uma conta = um ovo ou dragão;
+- Limiar;
+- Convergência;
+- Taxonomia Dracônica;
+- SaveManager, exceto se for estritamente necessário;
+- HatchScreen;
+- DragonTypeResolver;
+- Orbs;
+- Absorção;
+- sistema de nascimento;
+- placeholders de expedição;
+- placeholders de ninho.
+
+Não criar:
+
+- reset público;
+- segundo ovo;
+- expedição real;
+- edição de ninho real;
+- profissão real;
+- anúncios;
+- Limiar automático;
+- Convergência jogável.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- manter DragonScreen funcionando;
+- criar novos dragões com vitality 0.75;
+- permitir alimentar logo após o nascimento, se houver cristal;
+- não quebrar saves antigos sem foodsEatenFirstTime;
+- garantir foodsEatenFirstTime como array após alimentar;
+- explicar quando comida está indisponível;
+- manter mensagens narrativas;
+- manter diário funcionando;
+- persistir alterações após reload;
+- não implementar sistemas futuros.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Abrir o repositório:
+   https://github.com/wesley956/ARC---AETHON
+2. Rodar npm install.
+3. Rodar npm run build.
+4. Rodar npm run dev.
+5. Criar novo save e chegar ao nascimento.
+6. Nomear o dragão.
+7. Confirmar que o dragão nasce com vitalidade 75%.
+8. Adicionar cristais via DebugPanel DEV ONLY, se necessário.
+9. Alimentar com uma comida.
+10. Confirmar que a vitalidade aumenta.
+11. Confirmar que o cristal correto diminui.
+12. Confirmar que foodsEatenFirstTime existe no save após alimentar.
+13. Testar um save antigo sem foodsEatenFirstTime, se possível.
+14. Confirmar que comida indisponível mostra motivo.
+15. Recarregar a página e confirmar persistência.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado ou um patch aplicável ao repositório.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como corrigiu a vitalidade inicial.
+3. Como protegeu foodsEatenFirstTime.
+4. Como melhorou o feedback de comida indisponível.
+5. Como testar.
+6. Se npm run build passou.

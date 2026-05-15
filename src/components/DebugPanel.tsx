@@ -9,14 +9,13 @@ import { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { ELEMENT_EMOJI, MVP_ORB_ELEMENTS, ORB_TRAY_MAX } from '../constants/gameConstants';
 import { MvpOrbElement, Orb } from '../types/game';
+import { normalizeMaterialInventory, addMaterials } from '../utils/materials';
 
 export default function DebugPanel() {
   const { save, clearSave, updateSave, currentScreen, navigateTo } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
   // Only show in development - check for Vite dev mode
-  // In production builds, this component will still render but could be
-  // conditionally removed via build configuration
   const isDev = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   
@@ -51,6 +50,97 @@ export default function DebugPanel() {
           : prev.eggData,
       }));
     }
+  };
+
+  // Helper to add crystals for testing
+  const addTestCrystals = () => {
+    if (!save?.dragonData) return;
+    
+    updateSave((prev) => ({
+      ...prev,
+      dragonData: prev.dragonData
+        ? {
+            ...prev.dragonData,
+            crystals: {
+              fire: prev.dragonData.crystals.fire + 5,
+              water: prev.dragonData.crystals.water + 5,
+              earth: prev.dragonData.crystals.earth + 5,
+              air: prev.dragonData.crystals.air + 2,
+              metal: prev.dragonData.crystals.metal + 2,
+            },
+          }
+        : prev.dragonData,
+    }));
+  };
+
+  // Helper to reduce vitality for testing feeding
+  const reduceVitality = () => {
+    if (!save?.dragonData) return;
+    
+    updateSave((prev) => ({
+      ...prev,
+      dragonData: prev.dragonData
+        ? {
+            ...prev.dragonData,
+            vitality: Math.max(0.1, prev.dragonData.vitality - 0.3),
+          }
+        : prev.dragonData,
+    }));
+  };
+
+  // Helper to finish expedition instantly (DEV ONLY)
+  const finishExpeditionNow = () => {
+    if (!save?.dragonData?.isOnExpedition) return;
+    
+    updateSave((prev) => ({
+      ...prev,
+      dragonData: prev.dragonData
+        ? {
+            ...prev.dragonData,
+            expeditionEndTime: Date.now() - 1000, // Set to past
+          }
+        : prev.dragonData,
+    }));
+  };
+
+  // Helper to clear injury (DEV ONLY)
+  const clearInjury = () => {
+    if (!save?.dragonData?.isInjured) return;
+    
+    updateSave((prev) => ({
+      ...prev,
+      dragonData: prev.dragonData
+        ? {
+            ...prev.dragonData,
+            isInjured: false,
+            recoveryTime: null,
+          }
+        : prev.dragonData,
+    }));
+  };
+
+  // Helper to add test materials (DEV ONLY)
+  const addTestMaterials = () => {
+    if (!save?.dragonData) return;
+    
+    // Use normalization to handle any old save format
+    const existingMaterials = normalizeMaterialInventory(save.dragonData.materials);
+    const newMaterials = addMaterials(existingMaterials, {
+      living_ash: 2,
+      ancient_stone: 2,
+      shell_fragment: 1,
+      memory_echo: 1,
+    });
+    
+    updateSave((prev) => ({
+      ...prev,
+      dragonData: prev.dragonData
+        ? {
+            ...prev.dragonData,
+            materials: newMaterials,
+          }
+        : prev.dragonData,
+    }));
   };
 
   return (
@@ -110,7 +200,6 @@ export default function DebugPanel() {
                   </div>
                   <div>Orbs (tray): {save.eggData.availableOrbs.length}</div>
                   <div>Orbs (egg): {save.eggData.orbsOnEgg.length}</div>
-                  <div>nightEventDoneToday: {String(save.eggData.nightEventDoneToday)}</div>
                 </div>
               )}
 
@@ -119,7 +208,19 @@ export default function DebugPanel() {
                   <div className="text-purple-400 mb-1">Dragon Data:</div>
                   <div>Name: {save.dragonData.dragonName}</div>
                   <div>Type: {save.dragonData.dragonType}</div>
-                  <div>Vitality: {save.dragonData.vitality}</div>
+                  <div>Vitality: {(save.dragonData.vitality * 100).toFixed(1)}%</div>
+                  <div>
+                    Crystals: {ELEMENT_EMOJI.fire}{save.dragonData.crystals.fire} |{' '}
+                    {ELEMENT_EMOJI.water}{save.dragonData.crystals.water} |{' '}
+                    {ELEMENT_EMOJI.earth}{save.dragonData.crystals.earth}
+                  </div>
+                  <div>Diary entries: {(save.dragonData.diaryEntries ?? []).length}</div>
+                  <div>
+                    Expedition: {save.dragonData.isOnExpedition ? '🗺️ Em curso' : '—'}
+                  </div>
+                  <div>
+                    Injured: {save.dragonData.isInjured ? '🩹 Sim' : '—'}
+                  </div>
                 </div>
               )}
             </div>
@@ -135,7 +236,7 @@ export default function DebugPanel() {
                 onClick={clearSave}
                 className="bg-red-900 text-red-200 px-2 py-1 rounded text-xs border border-red-700 hover:bg-red-800"
               >
-                🗑 Limpar Save (DEV ONLY)
+                🗑 Limpar Save (DEV)
               </button>
 
               {save?.hasEgg && save.eggData && (
@@ -169,10 +270,7 @@ export default function DebugPanel() {
                         eggData: prev.eggData
                           ? {
                               ...prev.eggData,
-                              maturationProgress: Math.min(
-                                1,
-                                prev.eggData.maturationProgress + 0.1
-                              ),
+                              maturationProgress: Math.min(1, prev.eggData.maturationProgress + 0.1),
                             }
                           : prev.eggData,
                       }));
@@ -181,73 +279,52 @@ export default function DebugPanel() {
                   >
                     +10% Mat (DEV)
                   </button>
+                </>
+              )}
 
+              {save?.hasDragon && save.dragonData && (
+                <>
                   <button
-                    onClick={() => {
-                      updateSave((prev) => ({
-                        ...prev,
-                        eggData: prev.eggData
-                          ? {
-                              ...prev.eggData,
-                              maturationProgress: 0.98,
-                            }
-                          : prev.eggData,
-                      }));
-                    }}
+                    onClick={addTestCrystals}
                     className="bg-purple-900 text-purple-200 px-2 py-1 rounded text-xs border border-purple-700 hover:bg-purple-800"
                   >
-                    Set 98% (DEV)
+                    💎 +5 Cristais (DEV)
                   </button>
 
                   <button
-                    onClick={() => {
-                      // Set high fire energy for testing pure fire dragon
-                      updateSave((prev) => ({
-                        ...prev,
-                        eggData: prev.eggData
-                          ? {
-                              ...prev.eggData,
-                              fireEnergy: 0.8,
-                              waterEnergy: 0.1,
-                              earthEnergy: 0.1,
-                              voidEnergy: 0.3,
-                            }
-                          : prev.eggData,
-                      }));
-                    }}
+                    onClick={reduceVitality}
                     className="bg-orange-900 text-orange-200 px-2 py-1 rounded text-xs border border-orange-700 hover:bg-orange-800"
                   >
-                    🔥 Pure Fire (DEV)
+                    ❤️ -30% Vitalidade (DEV)
                   </button>
 
                   <button
-                    onClick={() => {
-                      // Set mixed fire+water for steam dragon
-                      updateSave((prev) => ({
-                        ...prev,
-                        eggData: prev.eggData
-                          ? {
-                              ...prev.eggData,
-                              fireEnergy: 0.4,
-                              waterEnergy: 0.4,
-                              earthEnergy: 0.1,
-                              voidEnergy: 0.1,
-                            }
-                          : prev.eggData,
-                      }));
-                    }}
-                    className="bg-cyan-900 text-cyan-200 px-2 py-1 rounded text-xs border border-cyan-700 hover:bg-cyan-800"
+                    onClick={addTestMaterials}
+                    className="bg-teal-900 text-teal-200 px-2 py-1 rounded text-xs border border-teal-700 hover:bg-teal-800"
                   >
-                    💨 Steam (DEV)
+                    🎒 +Materiais (DEV)
                   </button>
+
+                  {save.dragonData.isOnExpedition && (
+                    <button
+                      onClick={finishExpeditionNow}
+                      className="bg-cyan-900 text-cyan-200 px-2 py-1 rounded text-xs border border-cyan-700 hover:bg-cyan-800"
+                    >
+                      ⏩ Finalizar Expedição (DEV)
+                    </button>
+                  )}
+
+                  {save.dragonData.isInjured && (
+                    <button
+                      onClick={clearInjury}
+                      className="bg-pink-900 text-pink-200 px-2 py-1 rounded text-xs border border-pink-700 hover:bg-pink-800"
+                    >
+                      🩹 Curar Lesão (DEV)
+                    </button>
+                  )}
                 </>
               )}
             </div>
-          </div>
-
-          {/* Save Version */}
-          <div className="mt-2 text-gray-600 text-center">
-            Save v{save?.saveVersion ?? '?'} | {new Date().toLocaleTimeString()}
           </div>
         </div>
       )}

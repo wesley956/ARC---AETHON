@@ -1,0 +1,650 @@
+# ARC: AETHON — PROMPT 7
+## Implementar Ninho Básico com Materiais + Mini Revisão do Ciclo
+
+Você está trabalhando no projeto Arc: Aethon.
+
+REPOSITÓRIO OFICIAL:
+https://github.com/wesley956/ARC---AETHON
+
+Antes de alterar qualquer código, leia:
+
+- AI_CONTEXT.md
+- ARC_AETHON_GAME_FLOW_BIBLE.md
+- DECISIONS.md
+- PROMPT_HISTORY.md
+- BACKLOG.md
+- README.md
+
+Esses arquivos são a fonte da verdade do projeto.
+
+Se você não conseguir acessar o repositório diretamente, peça ao usuário para fornecer o ZIP ou os arquivos principais, mas NÃO invente contexto e NÃO comece do zero.
+
+---
+
+# ESTADO ATUAL DO PROJETO
+
+O projeto está aprovado até o Prompt 6.1.
+
+Já foi implementado e aprovado:
+
+- Fundação do projeto
+- React + Vite + TypeScript
+- Save local com localStorage
+- GameContext
+- SaveManager
+- GameStateValidator
+- TimeManager
+- Taxonomia Dracônica
+- Onboarding
+- EggScreen
+- Sistema de Orbs
+- Sistema de Absorção
+- Transição para HatchScene
+- HatchScreen / Cena de Nascimento
+- DragonTypeResolver corrigido
+- DragonFactory
+- Criação de dragonData
+- Diário Dia 1
+- Transição irreversível ovo → dragão
+- DragonScreen funcional
+- Alimentação básica
+- Cristais
+- Diário inicial
+- Feedback de comida
+- Expedições
+- Ruínas de Ignareth
+- Camada 1 e Camada 2
+- Timer de retorno
+- Retorno/coleta
+- Cristais como recompensa
+- Materiais como recompensa
+- Lesão leve
+- Diário de expedição
+- Normalização segura de materiais antigos
+
+Agora a missão é implementar:
+
+NINHO BÁSICO COM MATERIAIS.
+
+Além disso, ao final, fazer uma MINI REVISÃO DO CICLO para garantir que o ninho não quebrou nada.
+
+---
+
+# IMPORTANTE — NÃO FAÇA ISSO
+
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere o sistema de Orbs e Absorção.
+Não altere HatchScreen.
+Não altere DragonTypeResolver.
+Não altere alimentação, exceto se for estritamente necessário para integração.
+Não altere expedições, exceto se for estritamente necessário para integração com materiais/ninho.
+Não implemente profissões completas ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+Não faça polish visual grande agora.
+
+A prioridade ainda é lógica, estado, save e gameplay funcional.
+O visual final será feito em prompts futuros.
+
+---
+
+# FONTE DA VERDADE
+
+O projeto deve obedecer à ARC: AETHON — Game Flow Bible v1.2.
+
+Regras centrais:
+
+- Uma conta = um ovo ou um dragão, nunca os dois.
+- Depois do nascimento, DragonScreen é a tela principal.
+- Expedições geram cristais e materiais.
+- Materiais devem poder alterar o ninho.
+- O ninho é a casa emocional do dragão.
+- O ninho influencia conforto, estética e tendências futuras.
+- Diário deve registrar memórias narrativas, não logs técnicos.
+- Profissões ainda NÃO devem ser implementadas completamente neste prompt.
+- Limiar e Convergência continuam apenas como estrutura/taxonomia.
+
+---
+
+# OBJETIVO DESTE PROMPT
+
+Implementar o primeiro sistema funcional de ninho com:
+
+1. Seção ou aba de Ninho na DragonScreen.
+2. Visualização do ninho atual.
+3. Slots simples do ninho.
+4. Materiais aplicáveis ao ninho.
+5. Consumo de materiais ao aplicar upgrade.
+6. Conforto do ninho.
+7. Estilo/afinidade elemental do ninho.
+8. Bônus leves e seguros.
+9. Entrada narrativa no diário ao alterar o ninho.
+10. Preparação para profissões futuras.
+11. Mini revisão do ciclo completo para garantir que nada quebrou.
+
+---
+
+# CONCEITO DO NINHO
+
+O ninho não é apenas decoração.
+
+O ninho é a casa emocional do dragão.
+
+Loop oficial:
+
+Expedições geram materiais.
+Materiais alteram o ninho.
+Ninho muda conforto, estética e bônus passivos leves.
+Dragão reage ao ambiente.
+Personalidade e profissão serão influenciadas futuramente.
+
+Neste prompt, implementar apenas o ninho básico.
+Não implementar profissões completas.
+
+---
+
+# DADOS DO NINHO
+
+Se já existir nestData no DragonData, usar e expandir com cuidado.
+
+Se não existir ou estiver incompleto, criar estrutura segura.
+
+Sugestão de estrutura:
+
+nestData = {
+  comfort: number,
+  style: 'basic' | 'warm' | 'stone' | 'memory',
+  slots: {
+    base: NestSlot | null,
+    comfort: NestSlot | null,
+    relic: NestSlot | null,
+  },
+  appliedUpgrades: string[],
+  lastUpdatedAt: string | null
+}
+
+NestSlot sugerido:
+
+{
+  id: string,
+  name: string,
+  materialId: string,
+  slotType: 'base' | 'comfort' | 'relic',
+  comfortBonus: number,
+  elementalAffinity?: 'fire' | 'water' | 'earth' | 'air' | 'metal' | 'void',
+  description: string
+}
+
+Se o projeto já tem tipos diferentes, adaptar ao padrão existente.
+
+IMPORTANTE:
+Não quebrar saves antigos.
+Usar fallback seguro se nestData estiver ausente.
+
+Exemplo:
+
+const nestData = dragonData.nestData ?? createDefaultNestData();
+
+---
+
+# SLOTS DO NINHO — MVP
+
+Implementar 3 slots simples:
+
+## 1. Base
+
+Representa a estrutura do ninho.
+
+Pode usar:
+
+- Pedra Antiga
+
+Upgrade:
+
+Base de Pedra Antiga
+
+Custo:
+
+- Pedra Antiga x1
+
+Efeito:
+
+- +10 conforto
+- estilo: stone
+- afinidade: earth
+
+Descrição:
+
+"Pedras antigas tornam o ninho mais firme. Ele parece dormir com menos sobressaltos."
+
+## 2. Conforto
+
+Representa calor, descanso ou revestimento.
+
+Pode usar:
+
+- Cinza Viva
+
+Upgrade:
+
+Braseiro de Cinza Viva
+
+Custo:
+
+- Cinza Viva x1
+
+Efeito:
+
+- +8 conforto
+- estilo: warm
+- afinidade: fire
+
+Descrição:
+
+"Um calor baixo permanece no ninho, como se Ignareth ainda respirasse."
+
+## 3. Relíquia
+
+Representa memória/lore.
+
+Pode usar:
+
+- Eco de Memória
+
+Upgrade:
+
+Relíquia de Eco
+
+Custo:
+
+- Eco de Memória x1
+
+Efeito:
+
+- +5 conforto
+- estilo: memory
+- afinidade: void ou water, escolha o que fizer mais sentido no projeto
+- desbloqueia entrada narrativa no diário
+
+Descrição:
+
+"O eco não faz som. Mesmo assim, o dragão parece ouvi-lo."
+
+---
+
+# MATERIAIS USADOS
+
+Usar materiais já implementados no Prompt 6:
+
+- living_ash / Cinza Viva
+- ancient_stone / Pedra Antiga
+- shell_fragment / Fragmento de Casca
+- memory_echo / Eco de Memória
+
+Para este prompt, usar pelo menos:
+
+- living_ash
+- ancient_stone
+- memory_echo
+
+O Fragmento de Casca pode ser exibido como "uso futuro" ou usado em upgrade simples se for fácil.
+
+Não criar dezenas de materiais novos.
+Não complicar crafting agora.
+
+---
+
+# APLICAR UPGRADE DO NINHO
+
+Ao clicar em um upgrade:
+
+1. Verificar se dragonData existe.
+2. Normalizar materials usando as funções já existentes em src/utils/materials.ts.
+3. Verificar se há material suficiente.
+4. Se não houver:
+   - não aplicar;
+   - mostrar feedback:
+     "Você não tem material suficiente para alterar o ninho."
+5. Se houver:
+   - consumir material;
+   - aplicar upgrade ao slot correto;
+   - atualizar comfort;
+   - atualizar style;
+   - adicionar upgrade em appliedUpgrades;
+   - salvar;
+   - criar entrada narrativa no diário;
+   - mostrar feedback visual.
+
+IMPORTANTE:
+Se o slot já tiver upgrade aplicado, não duplicar efeito infinitamente.
+
+Opções aceitáveis:
+
+Opção A:
+- Permitir substituir o slot, mas recalcular conforto a partir dos slots ativos.
+
+Opção B:
+- Bloquear reaplicar o mesmo upgrade e mostrar:
+  "Esse ajuste já faz parte do ninho."
+
+Preferência:
+Use a opção mais simples e segura.
+
+Critério:
+O jogador não pode farmar conforto infinito aplicando o mesmo upgrade repetidamente.
+
+---
+
+# CONFORTO DO NINHO
+
+Comfort deve ser seguro.
+
+Sugestão:
+
+- começa em 0;
+- máximo 100;
+- cada upgrade aumenta um pouco;
+- mostrar como porcentagem ou barra.
+
+Exemplo:
+
+comfort = Math.min(100, soma dos comfortBonus dos slots aplicados)
+
+Preferência:
+Recalcular conforto a partir dos slots ativos para evitar duplicação/bug.
+
+Não implementar bônus complexos ainda.
+
+---
+
+# BÔNUS LEVES DO NINHO
+
+Neste prompt, bônus devem ser simples e seguros.
+
+Pode implementar apenas exibição de bônus, sem alterar muito gameplay.
+
+Exemplos:
+
+- comfort >= 10:
+  "O dragão descansa melhor aqui."
+
+- style warm:
+  "Afinidade de Fogo no ninho."
+
+- style stone:
+  "Base estável."
+
+- style memory:
+  "Algo no ninho guarda lembranças."
+
+Se implementar efeito real, manter leve:
+
+- comfort pode reduzir levemente texto de lesão futura, mas NÃO precisa mexer em recuperação agora.
+- comfort pode ser usado futuramente por profissões.
+
+Recomendação:
+Neste prompt, aplicar apenas bônus descritivo e preparar dados.
+
+---
+
+# DIÁRIO DO NINHO
+
+Ao aplicar upgrade, criar entrada narrativa no diário.
+
+Exemplos:
+
+Base de Pedra Antiga:
+
+"Dia [X] — Trouxe pedras antigas para o ninho. Ele as empurrou até ficarem exatamente onde queria."
+
+Braseiro de Cinza Viva:
+
+"Dia [X] — Um calor baixo ficou no ninho. Ele dormiu perto dele sem medo."
+
+Relíquia de Eco:
+
+"Dia [X] — Coloquei um eco no ninho. Ele ficou quieto por muito tempo, como se escutasse alguém chamar."
+
+Não escrever logs técnicos no diário.
+
+Não escrever:
+
+"+10 conforto"
+"Upgrade aplicado"
+"Material consumido"
+
+---
+
+# UI NA DRAGONSCREEN
+
+Adicionar ou completar aba/seção de Ninho.
+
+Exibir:
+
+- título: Ninho
+- descrição curta:
+  "O ninho ainda é simples, mas cada material trazido de Aethon pode transformá-lo."
+- barra ou número de conforto
+- estilo atual do ninho
+- slots:
+  - Base
+  - Conforto
+  - Relíquia
+- materiais disponíveis
+- upgrades disponíveis
+- botão para aplicar upgrade
+- mensagem se material insuficiente
+- mensagem se upgrade já aplicado
+- texto de preparação para profissões futuras:
+  "Com o tempo, o ninho poderá influenciar o chamado do dragão."
+
+Não precisa visual final.
+Precisa ser funcional, claro e mobile-first.
+
+---
+
+# MATERIAL DISPLAY
+
+Reutilizar MaterialDisplay já criado.
+
+Se necessário, melhorar MaterialDisplay para ser usado no Ninho também.
+
+Mas não quebrar exibição atual de materiais na DragonScreen/Expedições.
+
+---
+
+# PROFISSÕES FUTURAS — APENAS PREPARAR
+
+Não implementar profissões completas.
+
+Mas, se já existir professionProgress, pode registrar tendências leves.
+
+Exemplos:
+
+- aplicar Pedra Antiga:
+  professionProgress.tendencies.guardian += 1
+
+- aplicar Cinza Viva:
+  professionProgress.tendencies.forge += 1
+
+- aplicar Eco de Memória:
+  professionProgress.tendencies.memory += 1
+
+Se isso for arriscado ou exigir muita alteração, não implemente agora.
+Apenas deixe comentário ou estrutura clara.
+
+Regra:
+Não revelar profissão.
+Não escolher classe.
+Não vender profissão.
+
+---
+
+# DEBUG DEV ONLY
+
+Pode adicionar botões DEV ONLY no DebugPanel para testar:
+
+- adicionar materiais;
+- limpar ninho;
+- aplicar materiais de teste.
+
+Mas:
+
+- tudo deve estar claramente marcado como DEV ONLY;
+- não deve parecer recurso do jogo;
+- não criar reset público;
+- não criar segundo ovo.
+
+---
+
+# MINI REVISÃO DO CICLO — INTEGRADA AO PROMPT 7
+
+Além de implementar o ninho, faça uma checagem simples para garantir que nada quebrou no ciclo principal.
+
+Verificar:
+
+1. Onboarding ainda cria ovo.
+2. EggScreen ainda abre com ovo.
+3. Orbs e Absorção continuam funcionando.
+4. Maturação 100% ainda leva para HatchScreen.
+5. HatchScreen ainda cria dragonData.
+6. DragonScreen ainda abre após nascimento.
+7. Alimentação ainda funciona.
+8. Expedição ainda funciona.
+9. Materiais de expedição aparecem.
+10. Ninho usa materiais sem quebrar save.
+11. Recarregar a página mantém estado correto.
+12. Nunca ficam hasEgg e hasDragon true ao mesmo tempo.
+
+Se encontrar bug pequeno causado pelo ninho, corrija.
+Se encontrar problema grande fora do escopo, não reescreva tudo; apenas descreva no final.
+
+---
+
+# ARQUIVOS QUE PROVAVELMENTE SERÃO ALTERADOS
+
+Você provavelmente vai mexer em:
+
+- src/screens/DragonScreen.tsx
+- src/types/game.ts
+- src/constants/gameConstants.ts
+- src/components/MaterialDisplay.tsx, se necessário
+- src/components/DebugPanel.tsx, se necessário
+
+Talvez criar:
+
+- src/data/nestUpgrades.ts
+- src/components/NestPanel.tsx
+- src/components/NestSlotCard.tsx
+- src/systems/NestSystem.ts
+- src/utils/nest.ts
+
+Não altere arquivos desnecessários.
+
+---
+
+# CUIDADOS TÉCNICOS
+
+- Não mutar save diretamente.
+- Usar updateSave ou função equivalente do GameContext.
+- Não criar estado inválido.
+- Não permitir hasEgg e hasDragon true ao mesmo tempo.
+- Não recriar eggData.
+- Não voltar para EggScreen.
+- Não criar segundo ovo.
+- Não implementar reset público.
+- Não criar compra de recursos.
+- Não implementar profissão completa.
+- Não mexer em Limiar global.
+- Não criar Convergência jogável.
+- Preservar Orbs/Absorção.
+- Preservar HatchScreen.
+- Preservar alimentação.
+- Preservar expedições.
+- Não coletar recompensa automaticamente sem clique do jogador.
+- Não permitir conforto infinito por reaplicar mesmo upgrade.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- manter DragonScreen funcionando;
+- mostrar seção de ninho;
+- mostrar conforto do ninho;
+- mostrar slots do ninho;
+- mostrar materiais disponíveis;
+- permitir aplicar upgrade com material suficiente;
+- bloquear upgrade sem material suficiente;
+- consumir material correto;
+- atualizar nestData no save;
+- atualizar conforto sem duplicação infinita;
+- criar entrada narrativa no diário;
+- persistir ninho após reload;
+- manter expedições funcionando;
+- manter alimentação funcionando;
+- manter nascimento funcionando;
+- não implementar profissões completas;
+- não implementar monetização;
+- não criar segundo ovo.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Abrir o repositório:
+   https://github.com/wesley956/ARC---AETHON
+2. Rodar npm install.
+3. Rodar npm run build.
+4. Rodar npm run dev.
+5. Entrar em um save com dragão.
+6. Coletar materiais via expedição ou DebugPanel DEV ONLY.
+7. Abrir seção Ninho.
+8. Aplicar Base de Pedra Antiga.
+9. Confirmar que Pedra Antiga diminui.
+10. Confirmar que conforto aumenta.
+11. Confirmar que diário recebe entrada narrativa.
+12. Aplicar Braseiro de Cinza Viva.
+13. Confirmar que Cinza Viva diminui.
+14. Aplicar Relíquia de Eco, se houver Eco de Memória.
+15. Tentar aplicar upgrade sem material suficiente.
+16. Confirmar que aparece mensagem de erro.
+17. Recarregar a página.
+18. Confirmar que o ninho persiste.
+19. Confirmar que alimentação ainda funciona.
+20. Confirmar que expedição ainda funciona.
+21. Confirmar que hasEgg e hasDragon não ficam true juntos.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado ou um patch aplicável ao repositório.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como o NestSystem funciona.
+3. Como os slots do ninho funcionam.
+4. Como materiais são consumidos.
+5. Como conforto é calculado.
+6. Como o diário é atualizado.
+7. O que foi checado na mini revisão do ciclo.
+8. Como testar.
+9. Se npm run build passou.
+10. O que ficou preparado para o próximo prompt.

@@ -21,7 +21,7 @@ export const ORB_TRAY_MAX = 8;
 export const ORB_ON_EGG_MAX = 5;
 
 /** MVP orb elements - typed to MvpOrbElement */
-import type { MvpOrbElement } from '../types/game';
+import type { MvpOrbElement, FoodRecipe, TraitKey, MaterialDefinition, MaterialId } from '../types/game';
 export const MVP_ORB_ELEMENTS: readonly MvpOrbElement[] = ['fire', 'water', 'earth'] as const;
 
 // --- ABSORPTION ---
@@ -49,64 +49,176 @@ export const EGG_DROP_RADIUS = 110;
 /** Maturation threshold for hatching (1.0 = 100%) */
 export const MATURATION_HATCH_THRESHOLD = 1.0;
 
+// --- DRAGON INITIAL STATE ---
+
+/** Initial vitality when dragon is born (allows first feeding) */
+export const INITIAL_DRAGON_VITALITY = 0.75;
+
 // --- FEEDING ---
 
-export const FOOD_RECIPES = {
+/** Vitality gain per feeding */
+export const FOOD_VITALITY_GAIN = 0.15;
+
+/** Trait increase per feeding */
+export const FOOD_TRAIT_GAIN = 0.05;
+
+/** Maximum vitality */
+export const MAX_VITALITY = 1.0;
+
+/** Food recipes for MVP */
+export const FOOD_RECIPES: Record<string, FoodRecipe> = {
   brasaCrocante: {
+    id: 'brasaCrocante',
     name: 'Brasa Crocante',
+    emoji: '🔥',
     cost: { fire: 1 },
-    vitalityGain: 5,
-    traitPush: 'courage' as const,
-    traitAmount: 0.02,
+    vitalityGain: FOOD_VITALITY_GAIN,
+    traitPush: 'courage' as TraitKey,
+    traitAmount: FOOD_TRAIT_GAIN,
+    feedMessage: '🔥 Ele devorou a Brasa Crocante com olhos acesos.',
+    diaryEntry: 'Provei fogo hoje. Não queimou. Parecia familiar.',
   },
   caldoDasMares: {
+    id: 'caldoDasMares',
     name: 'Caldo das Marés',
+    emoji: '💧',
     cost: { water: 1 },
-    vitalityGain: 5,
-    traitPush: 'gentleness' as const,
-    traitAmount: 0.02,
+    vitalityGain: FOOD_VITALITY_GAIN,
+    traitPush: 'gentleness' as TraitKey,
+    traitAmount: FOOD_TRAIT_GAIN,
+    feedMessage: '💧 Ele bebeu devagar. Por um instante, tudo pareceu mais calmo.',
+    diaryEntry: 'Bebi algo frio e antigo. Senti o mundo ficar quieto.',
   },
   raizDourada: {
+    id: 'raizDourada',
     name: 'Raiz Dourada',
+    emoji: '🌍',
     cost: { earth: 1 },
-    vitalityGain: 5,
-    traitPush: 'loyalty' as const,
-    traitAmount: 0.02,
+    vitalityGain: FOOD_VITALITY_GAIN,
+    traitPush: 'loyalty' as TraitKey,
+    traitAmount: FOOD_TRAIT_GAIN,
+    feedMessage: '🌍 Ele mastigou a Raiz Dourada e se deitou mais perto de você.',
+    diaryEntry: 'A raiz tinha gosto de pedra e sol. Fiquei perto dele depois.',
   },
 } as const;
+
+// --- MATERIALS ---
+
+export const MATERIAL_DEFINITIONS: Record<MaterialId, MaterialDefinition> = {
+  living_ash: {
+    id: 'living_ash',
+    name: 'Cinza Viva',
+    emoji: '🔥',
+    rarity: 'common',
+    description: 'Cinzas que ainda guardam calor das ruínas antigas.',
+  },
+  ancient_stone: {
+    id: 'ancient_stone',
+    name: 'Pedra Antiga',
+    emoji: '🪨',
+    rarity: 'common',
+    description: 'Fragmentos de construções que resistiram ao tempo.',
+  },
+  shell_fragment: {
+    id: 'shell_fragment',
+    name: 'Fragmento de Casca',
+    emoji: '🥚',
+    rarity: 'uncommon',
+    description: 'Restos de cascas que podem ter sido de dragões.',
+  },
+  memory_echo: {
+    id: 'memory_echo',
+    name: 'Eco de Memória',
+    emoji: '✨',
+    rarity: 'rare',
+    description: 'Uma lembrança cristalizada do passado de Aethon.',
+  },
+};
 
 // --- EXPEDITIONS ---
 
-export const EXPEDITION_ZONES = {
-  ruinasDeIgnareth: {
+/** DEV ONLY: Use shorter durations for testing */
+export const DEV_EXPEDITION_FAST_MODE = false;
+
+/** DEV duration multiplier (e.g., 0.01 = 1% of normal time) */
+export const DEV_EXPEDITION_TIME_MULTIPLIER = 0.01;
+
+/** Injury recovery time (ms) - Production: 1 hour */
+export const INJURY_RECOVERY_TIME_MS = 1 * 60 * 60 * 1000;
+
+/** DEV injury recovery time (ms) - 30 seconds for testing */
+export const DEV_INJURY_RECOVERY_TIME_MS = 30 * 1000;
+
+export interface ExpeditionLayerConfig {
+  id: string;
+  name: string;
+  description: string;
+  durationRange: [number, number]; // [min, max] in ms
+  injuryChance: number; // 0 to 1
+  rewards: {
+    crystalType: 'fire' | 'mixed';
+    crystalRange: [number, number];
+    commonMaterialChance: number;
+    uncommonMaterialChance: number;
+    rareMaterialChance: number;
+  };
+  diaryEntry: string;
+  injuryDiaryEntry: string;
+}
+
+export interface ExpeditionZoneConfig {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  layers: {
+    fronteira: ExpeditionLayerConfig;
+    interior: ExpeditionLayerConfig;
+  };
+}
+
+export const EXPEDITION_ZONES: Record<string, ExpeditionZoneConfig> = {
+  ruinas_de_ignareth: {
     id: 'ruinas_de_ignareth',
     name: 'Ruínas de Ignareth',
+    emoji: '🏛️',
+    description: 'As bordas queimadas de uma civilização antiga. Mesmo depois de séculos, algumas pedras ainda guardam calor.',
     layers: {
       fronteira: {
+        id: 'fronteira',
         name: 'Fronteira',
-        durationRange: [30 * 60 * 1000, 2 * 60 * 60 * 1000] as [number, number],
-        risk: 0,
+        description: 'As bordas externas das ruínas. Seguro, mas com recursos limitados.',
+        durationRange: [30 * 60 * 1000, 2 * 60 * 60 * 1000], // 30min to 2h
+        injuryChance: 0,
         rewards: {
-          crystalRange: [1, 3] as [number, number],
-          crystalElement: 'fire' as const,
+          crystalType: 'fire',
+          crystalRange: [1, 3],
           commonMaterialChance: 1.0,
-          narrativeFragmentChance: 0.1,
+          uncommonMaterialChance: 0,
+          rareMaterialChance: 0,
         },
+        diaryEntry: 'Fui às bordas de Ignareth hoje. O cheiro de cinzas não me incomodou.',
+        injuryDiaryEntry: '', // No injury possible
       },
       interior: {
+        id: 'interior',
         name: 'Interior',
-        durationRange: [3 * 60 * 60 * 1000, 6 * 60 * 60 * 1000] as [number, number],
-        risk: 0.1,
+        description: 'O coração das ruínas. Mais perigoso, mas com recompensas melhores.',
+        durationRange: [3 * 60 * 60 * 1000, 6 * 60 * 60 * 1000], // 3h to 6h
+        injuryChance: 0.1, // 10%
         rewards: {
-          crystalRange: [2, 5] as [number, number],
-          crystalElement: 'mixed' as const,
+          crystalType: 'mixed',
+          crystalRange: [2, 5],
+          commonMaterialChance: 0.5,
           uncommonMaterialChance: 0.5,
-          echoChance: 0.15,
+          rareMaterialChance: 0.15,
         },
+        diaryEntry: 'Fui mais fundo dessa vez. Vi algo que não consigo descrever ainda.',
+        injuryDiaryEntry: 'Voltei machucado. Não vou contar o que encontrei lá.',
       },
     },
   },
-} as const;
+};
 
 // --- SAVE ---
 
@@ -153,6 +265,24 @@ export const ELEMENT_EMOJI: Record<string, string> = {
   air: '💨',
   metal: '⚙️',
   void: '🌑',
+};
+
+// --- TRAIT LABELS ---
+
+export const TRAIT_LABELS: Record<string, string> = {
+  courage: 'Corajoso',
+  gentleness: 'Gentil',
+  loyalty: 'Leal',
+  curiosity: 'Curioso',
+  resilience: 'Resiliente',
+};
+
+export const TRAIT_EMOJI: Record<string, string> = {
+  courage: '⚔️',
+  gentleness: '💜',
+  loyalty: '🤝',
+  curiosity: '🔍',
+  resilience: '🛡️',
 };
 
 // --- HATCH SEQUENCE TIMING ---

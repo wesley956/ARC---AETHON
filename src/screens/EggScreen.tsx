@@ -1,26 +1,14 @@
 // ============================================================
 // ARC: AETHON — EGG SCREEN
-// Complete implementation of the orb and absorption mechanics.
-//
-// Features:
-// - Orb tray with drag and drop
-// - Drop detection over egg (110px radius for mobile comfort)
-// - Orbiting orbs visualization
-// - 2-second hold absorption
-// - Energy and maturation updates
-// - Transition to HatchScene at 100%
+// Main interaction screen for the egg phase.
+// Orbs, absorption, and maturation progress.
 // ============================================================
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Layout from '../components/Layout';
 import { useGame } from '../context/GameContext';
-import DraggableOrb from '../components/DraggableOrb';
-import OrbitingOrbs from '../components/OrbitingOrbs';
-import AbsorptionRing from '../components/AbsorptionRing';
-import FloatingNotification, { useNotifications } from '../components/FloatingNotification';
-import {
-  ELEMENT_EMOJI,
-  ELEMENT_LABELS,
+import { 
+  ELEMENT_EMOJI, 
   ELEMENT_COLORS,
   ORB_ON_EGG_MAX,
   ABSORPTION_HOLD_TIME_MS,
@@ -28,235 +16,149 @@ import {
   VOID_ENERGY_PER_ABSORPTION,
   VOID_ENERGY_MAX,
   MATURATION_PER_ORB,
-  MATURATION_HATCH_THRESHOLD,
-  ORB_TRAY_MAX,
-  ORB_MIN_PER_WINDOW,
-  ORB_MAX_PER_WINDOW,
-  MVP_ORB_ELEMENTS,
   EGG_DROP_RADIUS,
 } from '../constants/gameConstants';
 import { getTimeUntilNextOrb, formatTimeRemaining } from '../systems/TimeManager';
-import { Orb, MvpOrbElement } from '../types/game';
+import { Orb } from '../types/game';
+import FloatingNotification from '../components/FloatingNotification';
 
 export default function EggScreen() {
   const { save, updateSave, navigateTo } = useGame();
-  const egg = save?.eggData;
-
-  // Refs for drop detection
-  const eggRef = useRef<HTMLDivElement>(null);
+  const eggData = save?.eggData;
 
   // Drag state
-  const [isDragging, setIsDragging] = useState(false);
-  const [isOverEgg, setIsOverEgg] = useState(false);
+  const [draggedOrb, setDraggedOrb] = useState<Orb | null>(null);
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
 
-  // Absorption state
+  // Hold state for absorption
   const [isHolding, setIsHolding] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const holdStartTime = useRef<number | null>(null);
   const holdAnimationFrame = useRef<number | null>(null);
 
-  // Post-absorption bonus state
-  const [showAbsorptionBonus, setShowAbsorptionBonus] = useState(false);
+  // Notification
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Timer state
-  const [nextOrbTimer, setNextOrbTimer] = useState('');
-  const [isTrayFull, setIsTrayFull] = useState(false);
+  // Timer for next orb
+  const [timeToNextOrb, setTimeToNextOrb] = useState('');
 
-  // Notifications
-  const { notifications, showNotification, dismissNotification } = useNotifications();
+  // Egg ref for drop detection
+  const eggRef = useRef<HTMLDivElement>(null);
 
-  // Timer update effect
+  // Update timer
   useEffect(() => {
-    if (!egg) return;
+    if (!eggData) return;
 
     const updateTimer = () => {
-      // Check if tray is full
-      const trayFull = egg.availableOrbs.length >= ORB_TRAY_MAX;
-      setIsTrayFull(trayFull);
-
-      if (trayFull) {
-        setNextOrbTimer('Tray cheio');
-        return;
-      }
-
-      const remaining = getTimeUntilNextOrb(egg.lastOrbGenTime);
-      setNextOrbTimer(formatTimeRemaining(remaining));
-
-      // Check if we should generate a new orb
-      if (remaining <= 0) {
-        generateOnlineOrb();
-      }
+      const remaining = getTimeUntilNextOrb(eggData.lastOrbGenTime);
+      setTimeToNextOrb(formatTimeRemaining(remaining));
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [egg?.lastOrbGenTime, egg?.availableOrbs.length]);
+  }, [eggData?.lastOrbGenTime]);
 
-  // Generate orb when timer reaches 0 (online generation)
-  const generateOnlineOrb = useCallback(() => {
-    if (!save?.eggData) return;
-    if (save.eggData.availableOrbs.length >= ORB_TRAY_MAX) return;
+  // Handle orb drag start
+  const handleOrbDragStart = useCallback((orb: Orb, e: React.PointerEvent) => {
+    e.preventDefault();
+    setDraggedOrb(orb);
+    setDragPosition({ x: e.clientX, y: e.clientY });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
 
-    const orbCount = Math.floor(Math.random() * (ORB_MAX_PER_WINDOW - ORB_MIN_PER_WINDOW + 1)) + ORB_MIN_PER_WINDOW;
-    const newOrbs: Orb[] = [];
+  // Handle drag move
+  const handleDragMove = useCallback((e: React.PointerEvent) => {
+    if (!draggedOrb) return;
+    setDragPosition({ x: e.clientX, y: e.clientY });
+  }, [draggedOrb]);
 
-    for (let i = 0; i < orbCount; i++) {
-      if (save.eggData.availableOrbs.length + newOrbs.length >= ORB_TRAY_MAX) break;
-
-      const element: MvpOrbElement = MVP_ORB_ELEMENTS[Math.floor(Math.random() * MVP_ORB_ELEMENTS.length)];
-      newOrbs.push({
-        id: `orb_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        element,
-        createdAt: Date.now(),
-      });
+  // Handle drag end
+  const handleDragEnd = useCallback((e: React.PointerEvent) => {
+    if (!draggedOrb || !eggData || !eggRef.current) {
+      setDraggedOrb(null);
+      return;
     }
 
-    if (newOrbs.length > 0) {
-      updateSave((prev) => ({
-        ...prev,
-        eggData: prev.eggData
-          ? {
-              ...prev.eggData,
-              availableOrbs: [...prev.eggData.availableOrbs, ...newOrbs],
-              lastOrbGenTime: Date.now(),
-            }
-          : prev.eggData,
-      }));
-    }
-  }, [save?.eggData, updateSave]);
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
 
-  // Prevent body scroll during drag
-  useEffect(() => {
-    if (isDragging) {
-      document.body.classList.add('dragging');
-    } else {
-      document.body.classList.remove('dragging');
-    }
-    return () => document.body.classList.remove('dragging');
-  }, [isDragging]);
-
-  // Check if position is over the egg (using EGG_DROP_RADIUS for comfortable mobile experience)
-  const isPositionOverEgg = useCallback((position: { x: number; y: number }) => {
-    if (!eggRef.current) return false;
-    const rect = eggRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    // Check if dropped on egg
+    const eggRect = eggRef.current.getBoundingClientRect();
+    const eggCenterX = eggRect.left + eggRect.width / 2;
+    const eggCenterY = eggRect.top + eggRect.height / 2;
     const distance = Math.sqrt(
-      Math.pow(position.x - centerX, 2) + Math.pow(position.y - centerY, 2)
+      Math.pow(e.clientX - eggCenterX, 2) + Math.pow(e.clientY - eggCenterY, 2)
     );
-    return distance < EGG_DROP_RADIUS;
-  }, []);
 
-  // Drag handlers
-  const handleDragStart = useCallback(() => {
-    setIsDragging(true);
-    setShowAbsorptionBonus(false);
-  }, []);
-
-  const handleDragMove = useCallback(
-    (position: { x: number; y: number }) => {
-      setIsOverEgg(isPositionOverEgg(position));
-    },
-    [isPositionOverEgg]
-  );
-
-  const handleDragEnd = useCallback(
-    (orbId: string, dropPosition: { x: number; y: number }) => {
-      setIsDragging(false);
-      setIsOverEgg(false);
-
-      if (!save?.eggData) return;
-
-      const droppedOverEgg = isPositionOverEgg(dropPosition);
-
-      if (droppedOverEgg) {
-        // Check if we can add more orbs to the egg
-        if (save.eggData.orbsOnEgg.length >= ORB_ON_EGG_MAX) {
-          showNotification('Segure o ovo pra absorver primeiro!');
-          return;
-        }
-
-        // Find the orb
-        const orb = save.eggData.availableOrbs.find((o) => o.id === orbId);
-        if (!orb) return;
-
-        // Move orb from tray to egg
-        updateSave((prev) => ({
-          ...prev,
-          eggData: prev.eggData
-            ? {
-                ...prev.eggData,
-                availableOrbs: prev.eggData.availableOrbs.filter((o) => o.id !== orbId),
-                orbsOnEgg: [...prev.eggData.orbsOnEgg, orb],
-              }
-            : prev.eggData,
-        }));
-
-        // Show element-specific notification
-        const elementMessages: Record<string, string> = {
-          fire: '🔥 Energia de Fogo grudou no ovo!',
-          water: '💧 Energia de Água grudou no ovo!',
-          earth: '🌍 Energia de Terra grudou no ovo!',
-        };
-        showNotification(elementMessages[orb.element] || '✨ Orb grudou no ovo!');
+    if (distance <= EGG_DROP_RADIUS) {
+      // Check if egg can accept more orbs
+      if (eggData.orbsOnEgg.length >= ORB_ON_EGG_MAX) {
+        setNotification({ message: 'Segure o ovo para absorver primeiro!', type: 'info' });
+      } else {
+        // Move orb to egg
+        updateSave((prev) => {
+          if (!prev.eggData) return prev;
+          return {
+            ...prev,
+            eggData: {
+              ...prev.eggData,
+              availableOrbs: prev.eggData.availableOrbs.filter((o) => o.id !== draggedOrb.id),
+              orbsOnEgg: [...prev.eggData.orbsOnEgg, draggedOrb],
+            },
+          };
+        });
       }
-      // If dropped outside egg, orb stays in tray (no action needed)
-    },
-    [save?.eggData, isPositionOverEgg, updateSave, showNotification]
-  );
+    }
 
-  // Handle drag cancel (from DraggableOrb pointercancel)
-  const handleDragCancel = useCallback(() => {
-    setIsDragging(false);
-    setIsOverEgg(false);
-  }, []);
+    setDraggedOrb(null);
+  }, [draggedOrb, eggData, updateSave]);
 
-  // Absorption hold handlers
-  const startHold = useCallback(() => {
-    if (!egg || egg.orbsOnEgg.length === 0) {
-      showNotification('Arraste energias pro ovo primeiro!');
+  // Handle egg hold for absorption
+  const handleEggPointerDown = useCallback(() => {
+    if (!eggData || eggData.orbsOnEgg.length === 0) {
+      setNotification({ message: 'Arraste energias pro ovo primeiro!', type: 'info' });
       return;
     }
 
     setIsHolding(true);
     holdStartTime.current = Date.now();
-    setShowAbsorptionBonus(false);
 
-    const updateProgress = () => {
+    const animate = () => {
       if (!holdStartTime.current) return;
 
       const elapsed = Date.now() - holdStartTime.current;
-      const progress = Math.min(elapsed / ABSORPTION_HOLD_TIME_MS, 1);
+      const progress = Math.min(1, elapsed / ABSORPTION_HOLD_TIME_MS);
       setHoldProgress(progress);
 
-      if (progress >= 1) {
-        // Absorption complete
-        completeAbsorption();
+      if (progress < 1) {
+        holdAnimationFrame.current = requestAnimationFrame(animate);
       } else {
-        holdAnimationFrame.current = requestAnimationFrame(updateProgress);
+        // Absorption complete!
+        performAbsorption();
       }
     };
 
-    holdAnimationFrame.current = requestAnimationFrame(updateProgress);
-  }, [egg, showNotification]);
+    holdAnimationFrame.current = requestAnimationFrame(animate);
+  }, [eggData]);
 
-  const cancelHold = useCallback(() => {
+  const handleEggPointerUp = useCallback(() => {
     setIsHolding(false);
     setHoldProgress(0);
     holdStartTime.current = null;
     if (holdAnimationFrame.current) {
       cancelAnimationFrame(holdAnimationFrame.current);
-      holdAnimationFrame.current = null;
     }
   }, []);
 
-  const completeAbsorption = useCallback(() => {
-    if (!save?.eggData || save.eggData.orbsOnEgg.length === 0) return;
+  // Perform absorption
+  const performAbsorption = useCallback(() => {
+    if (!eggData) return;
 
-    const orbsToAbsorb = save.eggData.orbsOnEgg;
+    const orbsToAbsorb = eggData.orbsOnEgg;
+    if (orbsToAbsorb.length === 0) return;
 
-    // Calculate energy gains
     let fireGain = 0;
     let waterGain = 0;
     let earthGain = 0;
@@ -275,22 +177,13 @@ export default function EggScreen() {
       }
     });
 
-    // Calculate maturation gain
     const maturationGain = orbsToAbsorb.length * MATURATION_PER_ORB;
+    const voidGain = VOID_ENERGY_PER_ABSORPTION;
 
-    // Update save (useEffect will handle navigation to HatchScene)
     updateSave((prev) => {
       if (!prev.eggData) return prev;
 
-      const newVoidEnergy = Math.min(
-        prev.eggData.voidEnergy + VOID_ENERGY_PER_ABSORPTION,
-        VOID_ENERGY_MAX
-      );
-
-      const newMaturation = Math.min(
-        prev.eggData.maturationProgress + maturationGain,
-        MATURATION_HATCH_THRESHOLD
-      );
+      const newMaturation = Math.min(1, prev.eggData.maturationProgress + maturationGain);
 
       return {
         ...prev,
@@ -299,259 +192,178 @@ export default function EggScreen() {
           fireEnergy: prev.eggData.fireEnergy + fireGain,
           waterEnergy: prev.eggData.waterEnergy + waterGain,
           earthEnergy: prev.eggData.earthEnergy + earthGain,
-          voidEnergy: newVoidEnergy,
+          voidEnergy: Math.min(VOID_ENERGY_MAX, prev.eggData.voidEnergy + voidGain),
           maturationProgress: newMaturation,
-          orbsOnEgg: [], // Clear orbiting orbs
+          orbsOnEgg: [],
         },
       };
     });
 
-    // Reset hold state
+    setNotification({ message: '✨ O ovo absorveu as energias!', type: 'success' });
     setIsHolding(false);
     setHoldProgress(0);
     holdStartTime.current = null;
-    if (holdAnimationFrame.current) {
-      cancelAnimationFrame(holdAnimationFrame.current);
-      holdAnimationFrame.current = null;
-    }
 
-    // Show notification
-    showNotification('✨ O ovo absorveu as energias!');
-
-    // Show absorption bonus button
-    setShowAbsorptionBonus(true);
-  }, [save, updateSave, showNotification]);
-
-  // Handle absorption bonus click
-  const handleAbsorptionBonus = useCallback(() => {
-    showNotification('Absorção real será conectada ao sistema de anúncios futuramente.');
-    setShowAbsorptionBonus(false);
-  }, [showNotification]);
-
-  // Check maturation after save updates - SINGLE SOURCE OF TRUTH for HatchScene navigation
-  useEffect(() => {
-    if (egg && egg.maturationProgress >= MATURATION_HATCH_THRESHOLD) {
-      // Small delay for visual feedback
-      const timer = setTimeout(() => {
+    // Check for hatch
+    if (eggData.maturationProgress + maturationGain >= 1) {
+      setTimeout(() => {
         navigateTo('HatchScene');
-      }, 300);
-      return () => clearTimeout(timer);
+      }, 1000);
     }
-  }, [egg?.maturationProgress, navigateTo]);
+  }, [eggData, updateSave, navigateTo]);
 
-  if (!egg) return null;
+  if (!eggData) {
+    return (
+      <Layout className="items-center justify-center">
+        <p className="text-[#6a6a7a]">Carregando dados do ovo...</p>
+      </Layout>
+    );
+  }
 
-  const matPct = (egg.maturationProgress * 100).toFixed(1);
-
-  // Only show MVP elements (fire, water, earth)
-  const energies = [
-    {
-      key: 'fire',
-      value: egg.fireEnergy,
-      label: ELEMENT_LABELS.fire,
-      emoji: ELEMENT_EMOJI.fire,
-      color: ELEMENT_COLORS.fire,
-    },
-    {
-      key: 'water',
-      value: egg.waterEnergy,
-      label: ELEMENT_LABELS.water,
-      emoji: ELEMENT_EMOJI.water,
-      color: ELEMENT_COLORS.water,
-    },
-    {
-      key: 'earth',
-      value: egg.earthEnergy,
-      label: ELEMENT_LABELS.earth,
-      emoji: ELEMENT_EMOJI.earth,
-      color: ELEMENT_COLORS.earth,
-    },
-  ];
+  const maturationPercent = Math.round(eggData.maturationProgress * 100);
 
   return (
-    <Layout className="items-center pt-6 px-4 pb-24 overflow-hidden">
-      {/* Floating Notifications */}
-      <FloatingNotification
-        notifications={notifications}
-        onDismiss={dismissNotification}
-      />
+    <Layout className="items-center pt-6 px-4 pb-20">
+      {/* Notification */}
+      {notification && (
+        <FloatingNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
 
       {/* Title */}
-      <h1 className="text-2xl font-bold text-aethon-glow mb-1">O Ovo</h1>
-      <p className="text-aethon-muted text-sm mb-4">
-        Cuide dele. Ele sente sua presença.
-      </p>
+      <h1 className="text-xl font-bold text-[#c4b5fd] mb-2">Seu Ovo</h1>
 
-      {/* Maturation Bar */}
+      {/* Maturation Progress */}
       <div className="w-full max-w-xs mb-4">
-        <div className="flex justify-between text-xs text-aethon-muted mb-1">
+        <div className="flex justify-between text-xs text-[#6a6a7a] mb-1">
           <span>Maturação</span>
-          <span>{matPct}%</span>
+          <span>{maturationPercent}%</span>
         </div>
-        <div className="w-full h-3 bg-aethon-card rounded-full overflow-hidden border border-aethon-border">
+        <div className="h-2 bg-[#1a1a24] rounded-full overflow-hidden border border-[#2a2a3a]">
           <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{
-              width: `${Math.min(100, parseFloat(matPct))}%`,
-              background: 'linear-gradient(90deg, #7c5cbf, #c084fc)',
-            }}
+            className="h-full bg-gradient-to-r from-[#a78bfa] to-[#c4b5fd] transition-all duration-500"
+            style={{ width: `${maturationPercent}%` }}
           />
         </div>
       </div>
 
-      {/* Egg Container */}
+      {/* Egg */}
       <div
         ref={eggRef}
-        className="relative mb-4 select-none"
-        onPointerDown={(e) => {
-          if (!isDragging) {
-            e.preventDefault();
-            startHold();
-          }
-        }}
-        onPointerUp={cancelHold}
-        onPointerLeave={cancelHold}
-        onPointerCancel={cancelHold}
-        style={{ touchAction: 'none' }}
+        onPointerDown={handleEggPointerDown}
+        onPointerUp={handleEggPointerUp}
+        onPointerLeave={handleEggPointerUp}
+        onPointerCancel={handleEggPointerUp}
+        className="relative w-40 h-48 flex items-center justify-center cursor-pointer select-none"
       >
-        {/* Absorption Ring */}
-        <AbsorptionRing progress={holdProgress} isActive={isHolding} />
-
-        {/* Base glow */}
-        <div
-          className={`
-            absolute inset-0 rounded-full pointer-events-none
-            transition-all duration-300
-            ${isOverEgg ? 'animate-egg-highlight' : 'animate-pulse-glow'}
-          `}
-          style={{
-            background: isOverEgg
-              ? 'radial-gradient(circle, rgba(192,132,252,0.3) 0%, transparent 60%)'
-              : 'radial-gradient(circle, rgba(192,132,252,0.15) 0%, transparent 70%)',
-            transform: 'scale(2.5)',
-          }}
-        />
-
-        {/* Orbiting orbs */}
-        <OrbitingOrbs orbs={egg.orbsOnEgg} />
-
-        {/* The Egg */}
-        <div
-          className={`
-            text-8xl transition-transform duration-200 cursor-pointer
-            ${isHolding ? 'scale-95' : 'animate-float'}
-            ${isOverEgg ? 'scale-110' : ''}
-          `}
-        >
+        {/* Egg emoji */}
+        <div className={`text-8xl ${isHolding ? 'animate-pulse' : 'animate-float'}`}>
           🥚
         </div>
 
-        {/* Orbs on egg indicator */}
-        {egg.orbsOnEgg.length > 0 && !isHolding && (
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-aethon-card/90 px-3 py-1 rounded-full text-xs text-aethon-muted border border-aethon-border whitespace-nowrap">
-            {egg.orbsOnEgg.length}/{ORB_ON_EGG_MAX} orbs • Segure para absorver
+        {/* Hold progress ring */}
+        {isHolding && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg className="w-full h-full" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="#a78bfa"
+                strokeWidth="3"
+                strokeDasharray={`${holdProgress * 283} 283`}
+                transform="rotate(-90 50 50)"
+                className="transition-all duration-100"
+              />
+            </svg>
           </div>
         )}
+
+        {/* Orbs orbiting egg */}
+        {eggData.orbsOnEgg.map((orb, index) => {
+          const delay = index * 0.5;
+          return (
+            <div
+              key={orb.id}
+              className="absolute"
+              style={{
+                animation: `orbit 4s linear ${delay}s infinite`,
+              }}
+            >
+              <span className="text-2xl">{ELEMENT_EMOJI[orb.element]}</span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Absorption Bonus Button */}
-      {showAbsorptionBonus && (
-        <button
-          onClick={handleAbsorptionBonus}
-          className="mb-4 px-4 py-2 bg-aethon-accent/20 border border-aethon-accent/40 rounded-xl text-aethon-glow text-sm hover:bg-aethon-accent/30 active:scale-95 transition-all"
-        >
-          <div className="font-medium">✨ Absorção</div>
-          <div className="text-xs text-aethon-muted mt-0.5">
-            O ovo ainda pulsa com energia. Uma segunda Absorção é possível…
-          </div>
-        </button>
-      )}
+      {/* Instruction */}
+      <p className="text-xs text-[#6a6a7a] mt-2 text-center">
+        {eggData.orbsOnEgg.length > 0
+          ? 'Segure o ovo para absorver as energias'
+          : 'Arraste orbs para o ovo'}
+      </p>
 
-      {/* Energies */}
-      <div className="w-full max-w-xs mb-4">
-        <h2 className="text-xs font-semibold text-aethon-muted mb-2 uppercase tracking-wider">
-          Energias Elementais
-        </h2>
-        <div className="grid grid-cols-1 gap-1.5">
-          {energies.map((e) => (
+      {/* Timer */}
+      <div className="mt-4 text-center">
+        <p className="text-xs text-[#6a6a7a]">Próximo orb em</p>
+        <p className="text-lg font-mono text-[#a78bfa]">{timeToNextOrb}</p>
+      </div>
+
+      {/* Orb Tray */}
+      <div className="w-full max-w-xs mt-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-[#6a6a7a]">Energias Disponíveis</span>
+          <span className="text-xs text-[#6a6a7a]">{eggData.availableOrbs.length}/8</span>
+        </div>
+        <div
+          className="grid grid-cols-4 gap-2 p-3 bg-[#12121a] rounded-xl border border-[#2a2a3a]"
+          onPointerMove={handleDragMove}
+          onPointerUp={handleDragEnd}
+          onPointerCancel={handleDragEnd}
+        >
+          {eggData.availableOrbs.map((orb) => (
             <div
-              key={e.key}
-              className="flex items-center gap-2 bg-aethon-card/50 rounded-lg px-3 py-1.5 border border-aethon-border/50"
+              key={orb.id}
+              onPointerDown={(e) => handleOrbDragStart(orb, e)}
+              className={`
+                w-12 h-12 flex items-center justify-center rounded-lg cursor-grab
+                bg-[#1a1a24] border border-[#2a2a3a] hover:border-[#a78bfa]/50
+                transition-all touch-none select-none
+                ${draggedOrb?.id === orb.id ? 'opacity-30' : ''}
+              `}
+              style={{
+                boxShadow: `0 0 12px ${ELEMENT_COLORS[orb.element]}40`,
+              }}
             >
-              <span className="text-base">{e.emoji}</span>
-              <span className="text-xs text-aethon-text flex-1">{e.label}</span>
-              <div className="w-16 h-1.5 bg-aethon-bg rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.min(100, e.value * 100)}%`,
-                    backgroundColor: e.color,
-                  }}
-                />
-              </div>
-              <span className="text-[10px] text-aethon-muted w-8 text-right">
-                {(e.value * 100).toFixed(0)}%
-              </span>
+              <span className="text-2xl">{ELEMENT_EMOJI[orb.element]}</span>
             </div>
+          ))}
+          {/* Empty slots */}
+          {Array.from({ length: Math.max(0, 8 - eggData.availableOrbs.length) }).map((_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="w-12 h-12 rounded-lg bg-[#0a0a0f] border border-[#1a1a24] border-dashed"
+            />
           ))}
         </div>
       </div>
 
-      {/* Void Energy (subtle) */}
-      <div className="w-full max-w-xs mb-4">
-        <div className="flex items-center gap-2 bg-aethon-void/10 rounded-lg px-3 py-1.5 border border-aethon-void/20">
-          <span className="text-base">{ELEMENT_EMOJI.void}</span>
-          <span className="text-xs text-aethon-muted flex-1">Ressonância Oculta</span>
-          <span className="text-[10px] text-aethon-muted">
-            {(egg.voidEnergy * 100).toFixed(0)}%
-          </span>
+      {/* Dragged orb follows cursor */}
+      {draggedOrb && (
+        <div
+          className="fixed pointer-events-none z-50"
+          style={{
+            left: dragPosition.x - 20,
+            top: dragPosition.y - 20,
+          }}
+        >
+          <span className="text-4xl drop-shadow-lg">{ELEMENT_EMOJI[draggedOrb.element]}</span>
         </div>
-      </div>
-
-      {/* Orb Tray */}
-      <div className="w-full max-w-xs">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xs font-semibold text-aethon-muted uppercase tracking-wider">
-            Orbs Disponíveis
-          </h2>
-          <span className={`text-[10px] ${isTrayFull ? 'text-yellow-400' : 'text-aethon-muted'}`}>
-            {egg.availableOrbs.length}/{ORB_TRAY_MAX}
-          </span>
-        </div>
-
-        {egg.availableOrbs.length > 0 ? (
-          <div className="flex flex-wrap gap-2 justify-center bg-aethon-card/30 rounded-xl p-3 border border-aethon-border/30">
-            {egg.availableOrbs.map((orb) => (
-              <DraggableOrb
-                key={orb.id}
-                orb={orb}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onDragMove={handleDragMove}
-                onDragCancel={handleDragCancel}
-                disabled={isHolding}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center bg-aethon-card/30 rounded-xl p-4 border border-aethon-border/30">
-            <p className="text-xs text-aethon-muted italic">
-              Nenhum orb disponível.
-            </p>
-          </div>
-        )}
-
-        <p className={`text-[10px] mt-2 text-center ${isTrayFull ? 'text-yellow-400' : 'text-aethon-muted'}`}>
-          {isTrayFull ? '⚠️ Tray cheio — use orbs para receber mais' : `Próximo orb em: ${nextOrbTimer}`}
-        </p>
-      </div>
-
-      {/* Instructions hint */}
-      <div className="w-full max-w-xs mt-4 text-center">
-        <p className="text-[10px] text-aethon-muted/70">
-          Arraste orbs até o ovo • Segure o ovo para absorver
-        </p>
-      </div>
+      )}
     </Layout>
   );
 }

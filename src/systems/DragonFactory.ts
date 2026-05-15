@@ -11,8 +11,10 @@ import {
   ProfessionProgress,
   PersonalityTraits,
   ElementType,
+  MaterialInventory,
 } from '../types/game';
 import { ResolvedDragonType, getInitialPersonalityTraits } from './DragonTypeResolver';
+import { INITIAL_DRAGON_VITALITY } from '../constants/gameConstants';
 
 /**
  * Generate a unique ID.
@@ -30,19 +32,32 @@ function createFirstDiaryEntry(): DiaryEntry {
     dayNumber: 1,
     text: 'Dia 1 — Ele abriu os olhos pela primeira vez. Me olhou. Não tinha medo.',
     timestamp: Date.now(),
+    category: 'birth',
   };
 }
 
 /**
- * Create initial crystal inventory (empty).
+ * Create initial crystal inventory (empty for normal start, some for testing).
  */
 function createInitialCrystals(): CrystalInventory {
   return {
-    fire: 0,
-    water: 0,
-    earth: 0,
+    fire: 3,
+    water: 3,
+    earth: 3,
     air: 0,
     metal: 0,
+  };
+}
+
+/**
+ * Create initial material inventory (empty).
+ */
+function createInitialMaterials(): MaterialInventory {
+  return {
+    living_ash: 0,
+    ancient_stone: 0,
+    shell_fragment: 0,
+    memory_echo: 0,
   };
 }
 
@@ -89,15 +104,31 @@ export function createDragonData(
     dragonName: dragonName.trim(),
     dragonType: resolvedType.dragonTypeId,
     dominantElement: resolvedType.dominantElement as ElementType,
-    vitality: 100,
+    vitality: INITIAL_DRAGON_VITALITY, // Start at 75% to allow first feeding
     personalityTraits,
+    
+    // Expedition state
     isOnExpedition: false,
     expeditionEndTime: null,
+    expeditionZoneId: null,
+    expeditionLayerId: null,
+    expeditionStartTime: null,
+    
+    // Injury state
+    isInjured: false,
+    recoveryTime: null,
+    
+    // Collections
     diaryEntries: [createFirstDiaryEntry()],
     crystals: createInitialCrystals(),
-    materials: [],
+    materials: createInitialMaterials(),
+    
+    // Nest and profession
     nestData: createInitialNest(),
     professionProgress: createInitialProfessionProgress(),
+    
+    // Feeding tracking
+    foodsEatenFirstTime: [],
   };
 }
 

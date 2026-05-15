@@ -1,0 +1,293 @@
+# ARC: AETHON — PROMPT 6.1
+## Correções pequenas de Expedições e Materiais antes do Ninho
+
+Você está trabalhando no projeto Arc: Aethon.
+
+REPOSITÓRIO OFICIAL:
+https://github.com/wesley956/ARC---AETHON
+
+Antes de alterar qualquer código, leia:
+
+- AI_CONTEXT.md
+- ARC_AETHON_GAME_FLOW_BIBLE.md
+- DECISIONS.md
+- PROMPT_HISTORY.md
+- BACKLOG.md
+- README.md
+
+O projeto está aprovado até o Prompt 6, mas precisa de pequenas correções antes de avançar para o sistema de ninho.
+
+---
+
+# ESTADO ATUAL
+
+Já foi implementado:
+
+- Fundação
+- Save e validação
+- Onboarding
+- Ovo
+- Orbs
+- Absorção
+- Nascimento
+- DragonScreen
+- Alimentação
+- Diário
+- Expedições
+- Ruínas de Ignareth
+- Camada 1
+- Camada 2
+- Timer
+- Retorno
+- Cristais
+- Materiais
+- Lesão leve
+- Diário de expedição
+
+O build passou no Prompt 6.
+
+---
+
+# IMPORTANTE — NÃO FAÇA ISSO
+
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere Orbs/Absorção.
+Não altere HatchScreen.
+Não altere DragonTypeResolver.
+Não altere alimentação, exceto se for estritamente necessário.
+Não implemente ninho completo ainda.
+Não implemente profissões completas ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+Não faça polish visual grande agora.
+
+Sua missão é apenas corrigir pequenos pontos técnicos de expedições e materiais.
+
+---
+
+# PROBLEMA 1 — TIMER DE EXPEDIÇÃO NÃO ESTÁ SEMPRE EM HH:MM:SS
+
+No ExpeditionSystem, a função formatTimeRemaining pode retornar MM:SS quando horas = 0.
+
+Mas a Bíblia e os prompts pedem padrão:
+
+HH:MM:SS
+
+Exemplos:
+
+00:00:45
+00:12:08
+01:43:22
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 1
+
+Atualizar formatTimeRemaining em ExpeditionSystem para sempre retornar HH:MM:SS.
+
+Usar o mesmo padrão do TimeManager, por exemplo:
+
+const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+const hours = Math.floor(totalSeconds / 3600);
+const minutes = Math.floor((totalSeconds % 3600) / 60);
+const seconds = totalSeconds % 60;
+
+return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+Critério:
+
+- Se faltar menos de 1 minuto, mostrar 00:00:45.
+- Se faltar 12 minutos, mostrar 00:12:00.
+- Se faltar 1 hora, mostrar 01:00:00.
+- Não mostrar só 12:00.
+
+---
+
+# PROBLEMA 2 — MATERIAIS DE SAVES ANTIGOS PODEM QUEBRAR DISPLAY
+
+O projeto atual usa MaterialInventory como objeto:
+
+materials = {
+  living_ash: number,
+  ancient_stone: number,
+  shell_fragment: number,
+  memory_echo: number
+}
+
+Mas o GameStateValidator aceita materiais como array para compatibilidade com saves antigos.
+
+Isso é bom, mas MaterialDisplay e ExpeditionSystem podem receber um array antigo e tentar tratar como objeto de MaterialInventory.
+
+Isso pode gerar erro se Object.entries retornar índices de array em vez de MaterialId.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 2
+
+Criar uma função utilitária simples para normalizar materiais antigos.
+
+Pode ser em um novo arquivo:
+
+src/utils/materials.ts
+
+ou em ExpeditionSystem/MaterialDisplay se preferir manter simples.
+
+Exemplo conceitual:
+
+export function createEmptyMaterialInventory(): MaterialInventory {
+  return {
+    living_ash: 0,
+    ancient_stone: 0,
+    shell_fragment: 0,
+    memory_echo: 0,
+  };
+}
+
+export function normalizeMaterialInventory(input: unknown): MaterialInventory {
+  const empty = createEmptyMaterialInventory();
+
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return empty;
+  }
+
+  const obj = input as Partial<Record<MaterialId, number>>;
+
+  return {
+    living_ash: typeof obj.living_ash === 'number' ? obj.living_ash : 0,
+    ancient_stone: typeof obj.ancient_stone === 'number' ? obj.ancient_stone : 0,
+    shell_fragment: typeof obj.shell_fragment === 'number' ? obj.shell_fragment : 0,
+    memory_echo: typeof obj.memory_echo === 'number' ? obj.memory_echo : 0,
+  };
+}
+
+Se quiser preservar array antigo com itens de material, pode mapear, mas não é obrigatório agora. O importante é não crashar.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 3
+
+Usar normalizeMaterialInventory nos pontos que exibem ou somam materiais:
+
+- MaterialDisplay
+- ExpeditionSystem.collectExpedition
+- DebugPanel.addTestMaterials, se necessário
+- DragonScreen, se necessário
+
+Critério:
+
+- Se dragonData.materials estiver undefined, null ou array antigo, o app não pode crashar.
+- MaterialDisplay deve mostrar “Nenhum material coletado ainda” em vez de quebrar.
+- Ao coletar expedição, o save deve passar a ter materials no formato correto de objeto.
+- Não resetar dragonData inteiro.
+- Não recriar dragão.
+
+---
+
+# CORREÇÃO OBRIGATÓRIA 4 — NÃO MARCAR SAVE ANTIGO COMO INVÁLIDO POR MATERIAL ARRAY
+
+Manter a compatibilidade atual do GameStateValidator.
+
+Se materials for array antigo, não precisa marcar como inválido agora.
+
+A normalização em runtime resolve.
+
+Critério:
+
+- Saves antigos continuam abrindo.
+- Depois que o jogador coletar materiais ou usar DebugPanel, o formato passa a ficar correto.
+
+---
+
+# O QUE NÃO MEXER
+
+Não alterar:
+
+- regra uma conta = um ovo ou dragão;
+- Limiar;
+- Convergência;
+- Taxonomia Dracônica;
+- SaveManager, exceto se for estritamente necessário;
+- HatchScreen;
+- DragonTypeResolver;
+- Orbs;
+- Absorção;
+- alimentação;
+- fluxo de expedição;
+- recompensas;
+- chance de lesão;
+- diário de expedição.
+
+Não criar:
+
+- reset público;
+- segundo ovo;
+- ninho completo;
+- profissão real;
+- anúncios;
+- Limiar automático;
+- Convergência jogável.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- manter expedições funcionando;
+- manter coleta funcionando;
+- manter lesão funcionando;
+- manter diário funcionando;
+- mostrar timer sempre em HH:MM:SS;
+- não crashar com materials undefined;
+- não crashar com materials null;
+- não crashar com materials array antigo;
+- normalizar materials para objeto seguro ao coletar recompensas;
+- não implementar sistemas futuros.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Abrir o repositório:
+   https://github.com/wesley956/ARC---AETHON
+2. Rodar npm install.
+3. Rodar npm run build.
+4. Rodar npm run dev.
+5. Entrar em um save com dragão.
+6. Enviar expedição.
+7. Confirmar que countdown aparece como HH:MM:SS.
+8. Usar DEV ONLY para finalizar expedição.
+9. Coletar retorno.
+10. Confirmar que materiais aparecem.
+11. Simular save antigo com materials undefined, se possível.
+12. Simular save antigo com materials: [], se possível.
+13. Confirmar que MaterialDisplay não quebra.
+14. Confirmar que, após coletar expedição, materials vira objeto válido.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado ou patch aplicável ao repositório.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como o timer foi corrigido.
+3. Como materials foi normalizado.
+4. Como testar.
+5. Se npm run build passou.

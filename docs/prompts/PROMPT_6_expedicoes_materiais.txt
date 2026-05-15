@@ -1,0 +1,670 @@
+# ARC: AETHON — PROMPT 6
+## Implementar Expedições e Materiais
+
+Você está trabalhando no projeto Arc: Aethon.
+
+REPOSITÓRIO OFICIAL:
+https://github.com/wesley956/ARC---AETHON
+
+Antes de alterar qualquer código, leia:
+
+- AI_CONTEXT.md
+- ARC_AETHON_GAME_FLOW_BIBLE.md
+- DECISIONS.md
+- PROMPT_HISTORY.md
+- BACKLOG.md
+- README.md
+
+Esses arquivos são a fonte da verdade do projeto.
+
+Se você não conseguir acessar o repositório diretamente, peça ao usuário para fornecer o ZIP ou os arquivos principais, mas NÃO invente contexto e NÃO comece do zero.
+
+---
+
+# ESTADO ATUAL DO PROJETO
+
+O projeto está aprovado até o Prompt 5.1.
+
+Já foi implementado e aprovado:
+
+- Fundação do projeto
+- React + Vite + TypeScript
+- Save local com localStorage
+- GameContext
+- SaveManager
+- GameStateValidator
+- TimeManager
+- Taxonomia Dracônica
+- Onboarding
+- EggScreen
+- Sistema de Orbs
+- Sistema de Absorção
+- Transição para HatchScene
+- HatchScreen / Cena de Nascimento
+- DragonTypeResolver corrigido
+- DragonFactory
+- Criação de dragonData
+- Diário Dia 1
+- Transição irreversível ovo → dragão
+- DragonScreen funcional
+- Alimentação básica
+- Cristais
+- Diário inicial
+- Feedback de comida
+- Placeholders de expedição e ninho
+
+Agora a missão é implementar:
+
+EXPEDIÇÕES + MATERIAIS + RETORNO + DIÁRIO DE EXPEDIÇÃO.
+
+---
+
+# IMPORTANTE — NÃO FAÇA ISSO
+
+Não refaça o projeto do zero.
+Não altere a arquitetura principal.
+Não remova GameContext.
+Não remova SaveManager.
+Não remova GameStateValidator.
+Não remova TimeManager.
+Não remova Taxonomia Dracônica.
+Não remova Limiar.
+Não remova Convergência.
+Não altere o sistema de Orbs e Absorção.
+Não altere a Cena de Nascimento.
+Não altere DragonTypeResolver, exceto se for estritamente necessário.
+Não altere alimentação, exceto se for estritamente necessário para integração.
+Não implemente ninho completo ainda.
+Não implemente profissões completas ainda.
+Não implemente monetização real.
+Não implemente Limiar global real.
+Não implemente Dragão da Convergência como jogável.
+Não crie segundo ovo.
+Não crie reset público.
+Não faça polish visual grande agora.
+
+A prioridade ainda é lógica, estado, save e gameplay funcional.
+O visual final será feito em prompts futuros.
+
+---
+
+# FONTE DA VERDADE
+
+O projeto deve obedecer à ARC: AETHON — Game Flow Bible v1.2.
+
+Regras centrais:
+
+- Uma conta = um ovo ou um dragão, nunca os dois.
+- Depois do nascimento, DragonScreen é a tela principal.
+- Expedições ligam gameplay, recursos, lore, materiais, ninho e profissões futuras.
+- Expedições devem gerar cristais e materiais.
+- Materiais devem preparar o sistema de ninho.
+- Diário deve registrar memórias narrativas, não logs técnicos.
+- Ninho ainda NÃO deve ser implementado completamente neste prompt.
+- Profissões ainda NÃO devem ser implementadas completamente neste prompt.
+- Limiar e Convergência continuam apenas como estrutura/taxonomia.
+
+---
+
+# OBJETIVO DESTE PROMPT
+
+Implementar o primeiro sistema funcional de expedições com:
+
+1. Zona MVP: Ruínas de Ignareth.
+2. Camada 1 — Fronteira.
+3. Camada 2 — Interior.
+4. Envio do dragão em expedição.
+5. Timer de retorno.
+6. Persistência do timer no save.
+7. Retorno calculado mesmo se o app for fechado.
+8. Coleta de recompensas.
+9. Cristais.
+10. Materiais.
+11. Chance de lesão leve na Camada 2.
+12. Bloqueio de nova expedição enquanto já está em expedição.
+13. Bloqueio de expedição se o dragão estiver machucado.
+14. Entrada automática no diário após retorno.
+15. Feedback visual simples.
+16. Preparação para ninho futuro usando materiais.
+
+---
+
+# ZONA MVP
+
+Implementar a zona:
+
+## Ruínas de Ignareth
+
+Descrição:
+"As bordas queimadas de uma civilização antiga. Mesmo depois de séculos, algumas pedras ainda guardam calor."
+
+Camadas:
+
+## Camada 1 — Fronteira
+
+Duração:
+- Para produção: 30min a 2h.
+- Para desenvolvimento/teste, pode usar duração reduzida se existir modo DEV ONLY.
+- Se usar duração reduzida, deixar claro que é DEV ONLY.
+
+Risco:
+- Nenhum.
+
+Recompensas:
+- 1 a 3 Cristais de Fogo.
+- 1 material comum de ruína.
+- Chance baixa de fragmento narrativo.
+
+Entrada de diário:
+"Dia [X] — Fui às bordas de Ignareth hoje. O cheiro de cinzas não me incomodou."
+
+## Camada 2 — Interior
+
+Duração:
+- Para produção: 3h a 6h.
+- Para desenvolvimento/teste, pode usar duração reduzida se existir modo DEV ONLY.
+- Se usar duração reduzida, deixar claro que é DEV ONLY.
+
+Risco:
+- 10% chance de lesão leve.
+
+Recompensas:
+- 2 a 5 cristais mistos.
+- 1 a 2 materiais incomuns.
+- Chance de Eco de Memória.
+
+Entrada de diário normal:
+"Dia [X] — Fui mais fundo dessa vez. Vi algo que não consigo descrever ainda."
+
+Entrada de diário em caso de lesão:
+"Dia [X] — Voltei machucado. Não vou contar o que encontrei lá."
+
+---
+
+# DADOS NECESSÁRIOS NO DRAGONDATA
+
+Se ainda não existirem, preparar ou ajustar com cuidado:
+
+- isOnExpedition: boolean
+- expeditionStartTime: string | null
+- expeditionReturnTime: string | null
+- expeditionLayer: number | null
+- currentExpeditionId ou expeditionData, se preferir
+- isInjured: boolean
+- recoveryUntil: string | null
+- crystals
+- materials
+- diaryEntries
+
+Não quebrar saves antigos.
+Usar fallback seguro quando campos estiverem ausentes.
+
+Exemplo seguro:
+
+const isOnExpedition = dragonData.isOnExpedition ?? false;
+const materials = dragonData.materials ?? [];
+const diaryEntries = dragonData.diaryEntries ?? [];
+
+Não resetar dragonData antigo.
+Não recriar o dragão.
+
+---
+
+# MATERIAIS MVP
+
+Criar materiais iniciais.
+
+Se já existir tipo Material, respeitar.
+
+Materiais sugeridos:
+
+## Cinza Viva
+
+id:
+living_ash
+
+Nome:
+Cinza Viva
+
+Raridade:
+common
+
+Origem:
+Ruínas de Ignareth
+
+Uso futuro:
+Fonte de calor do ninho, braseiros e upgrades de fogo.
+
+## Pedra Antiga
+
+id:
+ancient_stone
+
+Nome:
+Pedra Antiga
+
+Raridade:
+common
+
+Origem:
+Ruínas de Ignareth
+
+Uso futuro:
+Base estrutural do ninho, estabilidade e proteção.
+
+## Fragmento de Casca
+
+id:
+shell_fragment
+
+Nome:
+Fragmento de Casca
+
+Raridade:
+uncommon
+
+Origem:
+Ruínas de Ignareth
+
+Uso futuro:
+Relíquias do ninho, vínculo e memórias.
+
+## Eco de Memória
+
+id:
+memory_echo
+
+Nome:
+Eco de Memória
+
+Raridade:
+rare
+
+Origem:
+Interior de Ignareth
+
+Uso futuro:
+Diário, lore, profissões e eventos especiais.
+
+Não implementar uso de ninho ainda.
+Apenas armazenar materiais no save e exibir na DragonScreen.
+
+---
+
+# CRISTAIS
+
+Expedições devem adicionar cristais ao dragão.
+
+Se o projeto usa:
+
+crystals = {
+  fire: number,
+  water: number,
+  earth: number,
+  air?: number,
+  metal?: number
+}
+
+Então:
+
+Camada 1:
+- fire +1 a +3
+
+Camada 2:
+- mistos, por exemplo:
+  - fire +0 a +2
+  - water +0 a +2
+  - earth +0 a +2
+  - total aproximado entre 2 e 5
+
+Não criar compra de cristais.
+Não criar monetização.
+
+---
+
+# FLUXO DE EXPEDIÇÃO
+
+## Enviar expedição
+
+Ao clicar em "Enviar em expedição":
+
+1. Verificar se dragonData existe.
+2. Verificar se isOnExpedition é false.
+3. Verificar se isInjured é false.
+4. Escolher camada.
+5. Calcular duração.
+6. Definir:
+   - isOnExpedition = true
+   - expeditionStartTime = agora
+   - expeditionReturnTime = agora + duração
+   - expeditionLayer = camada escolhida
+7. Salvar.
+8. Mostrar feedback:
+   "[Nome do dragão] partiu para as Ruínas de Ignareth."
+
+## Durante expedição
+
+DragonScreen deve mostrar:
+
+- status: "Em expedição"
+- zona: Ruínas de Ignareth
+- camada
+- tempo restante em HH:MM:SS
+- texto narrativo curto:
+  "Ele está longe, entre cinzas antigas."
+
+Não permitir alimentar? 
+Pode permitir alimentar apenas se isso não complicar, mas recomendação:
+- Enquanto em expedição, bloquear alimentação com mensagem:
+  "Ele está em expedição agora."
+
+Não permitir iniciar outra expedição.
+
+## Retorno
+
+Quando agora >= expeditionReturnTime:
+
+- Mostrar botão:
+  "Coletar retorno"
+
+Ao clicar:
+
+1. Calcular recompensa pela camada.
+2. Aplicar cristais.
+3. Aplicar materiais.
+4. Calcular lesão se camada 2.
+5. Criar entrada de diário.
+6. Definir:
+   - isOnExpedition = false
+   - expeditionStartTime = null
+   - expeditionReturnTime = null
+   - expeditionLayer = null
+7. Se houve lesão:
+   - isInjured = true
+   - recoveryUntil = agora + duração de recuperação
+8. Salvar.
+9. Mostrar feedback:
+   "[Nome do dragão] voltou da expedição."
+
+---
+
+# LESÃO LEVE
+
+Apenas Camada 2 tem risco.
+
+Chance:
+
+10%
+
+Se ocorrer:
+
+- isInjured = true
+- recoveryUntil = agora + tempo de recuperação
+
+Tempo de recuperação sugerido:
+
+- Produção: 1h
+- DEV ONLY: pode ser menor para teste
+
+Enquanto machucado:
+
+- não pode iniciar expedição;
+- mostrar status:
+  "Machucado"
+- mostrar tempo de recuperação, se houver;
+- pode continuar vendo diário e recursos;
+- alimentação pode continuar, se já existir, e pode ajudar no futuro, mas não precisa acelerar recuperação neste prompt.
+
+Quando recoveryUntil passar:
+
+- ao abrir o app ou atualizar DragonScreen, limpar:
+  - isInjured = false
+  - recoveryUntil = null
+
+Não criar tratamento complexo ainda.
+Não criar item de cura.
+Não criar monetização para curar.
+
+---
+
+# TIME/OFFLINE
+
+O sistema deve funcionar mesmo se o app for fechado.
+
+Ao abrir o app:
+
+- se o dragão está em expedição e expeditionReturnTime já passou, mostrar retorno disponível.
+- não coletar automaticamente as recompensas sem o jogador clicar.
+- o jogador deve clicar em "Coletar retorno" para receber recompensas e diário.
+
+Se recoveryUntil já passou:
+
+- pode limpar lesão automaticamente de forma segura.
+
+Você pode implementar isso em:
+
+- TimeManager
+- DragonScreen
+- ExpeditionSystem
+
+Escolha a forma mais simples, robusta e compatível com a arquitetura atual.
+
+---
+
+# DIÁRIO DE EXPEDIÇÃO
+
+Adicionar entradas narrativas.
+
+Camada 1 normal:
+"Dia [X] — Fui às bordas de Ignareth hoje. O cheiro de cinzas não me incomodou."
+
+Camada 2 normal:
+"Dia [X] — Fui mais fundo dessa vez. Vi algo que não consigo descrever ainda."
+
+Lesão:
+"Dia [X] — Voltei machucado. Não vou contar o que encontrei lá."
+
+Se coletar Eco de Memória:
+Pode adicionar uma linha extra ou entrada extra:
+"Dia [X] — Trouxe comigo um eco. Não sei se era lembrança minha ou do mundo."
+
+Não escrever no diário:
+"+3 cristais"
+"Recebeu material"
+"Expedição concluída"
+
+O diário deve ser emocional/narrativo.
+
+---
+
+# UI NA DRAGONSCREEN
+
+Adicionar ou completar uma aba/seção de Expedições.
+
+Exibir:
+
+- título: Expedições
+- zona: Ruínas de Ignareth
+- descrição da zona
+- camada 1 com duração/risco/recompensa resumida
+- camada 2 com duração/risco/recompensa resumida
+- botão para enviar
+- status atual se em expedição
+- countdown se em expedição
+- botão "Coletar retorno" quando pronto
+- status de lesão se machucado
+- materiais coletados, se já houver seção de recursos
+
+Não precisa visual final.
+Precisa ser funcional, claro e mobile-first.
+
+---
+
+# MATERIAL DISPLAY
+
+Se ainda não houver, adicionar exibição simples dos materiais.
+
+Pode ser na DragonScreen:
+
+- Materiais
+  - Cinza Viva x2
+  - Pedra Antiga x1
+  - Eco de Memória x1
+
+Se materials for array de objetos, respeitar.
+Se for mapa de quantidades, respeitar.
+Escolha o modelo mais compatível com o projeto atual.
+
+Recomendação:
+Usar estrutura fácil para somar quantidades.
+
+Exemplo:
+
+materials: {
+  living_ash: number,
+  ancient_stone: number,
+  shell_fragment: number,
+  memory_echo: number
+}
+
+Mas se o projeto já usa array, não migrar de forma agressiva sem necessidade.
+
+---
+
+# DEBUG DEV ONLY
+
+Pode adicionar botões DEV ONLY no DebugPanel para testar:
+
+- reduzir tempo de expedição;
+- finalizar expedição agora;
+- limpar lesão;
+- adicionar materiais.
+
+Mas:
+
+- tudo deve estar claramente marcado como DEV ONLY;
+- não deve parecer recurso do jogo;
+- não criar reset público;
+- não criar segundo ovo.
+
+---
+
+# ARQUIVOS QUE PROVAVELMENTE SERÃO ALTERADOS
+
+Você provavelmente vai mexer em:
+
+- src/screens/DragonScreen.tsx
+- src/context/GameContext.tsx
+- src/types/game.ts
+- src/constants/gameConstants.ts
+- src/components/DebugPanel.tsx
+- src/components/DiaryList.tsx, se necessário
+
+Talvez criar:
+
+- src/data/expeditions.ts
+- src/data/materials.ts
+- src/components/ExpeditionPanel.tsx
+- src/components/MaterialDisplay.tsx
+- src/systems/ExpeditionSystem.ts
+
+Não altere arquivos desnecessários.
+
+---
+
+# CUIDADOS TÉCNICOS
+
+- Não mutar save diretamente.
+- Usar updateSave ou função equivalente do GameContext.
+- Não criar estado inválido.
+- Não permitir hasEgg e hasDragon true ao mesmo tempo.
+- Não recriar eggData.
+- Não voltar para EggScreen.
+- Não criar segundo ovo.
+- Não implementar reset público.
+- Não criar compra de recursos.
+- Não implementar ninho completo.
+- Não implementar profissão completa.
+- Não mexer em Limiar global.
+- Não criar Convergência jogável.
+- Preservar Orbs/Absorção.
+- Preservar HatchScreen.
+- Preservar alimentação.
+- Não coletar recompensa automaticamente sem clique do jogador.
+
+---
+
+# CRITÉRIOS DE SUCESSO
+
+O projeto deve:
+
+- compilar sem erros;
+- manter DragonScreen funcionando;
+- mostrar seção de expedição;
+- permitir enviar dragão para Camada 1;
+- permitir enviar dragão para Camada 2;
+- impedir enviar se já estiver em expedição;
+- impedir enviar se estiver machucado;
+- mostrar countdown em expedição;
+- mostrar "Coletar retorno" quando timer terminar;
+- adicionar cristais ao coletar;
+- adicionar materiais ao coletar;
+- criar entrada narrativa no diário;
+- aplicar chance de lesão na Camada 2;
+- limpar estado de expedição após coleta;
+- persistir expedição após reload;
+- persistir recompensas após reload;
+- não implementar ninho completo;
+- não implementar profissões completas;
+- não quebrar alimentação;
+- não quebrar nascimento;
+- não quebrar save;
+- não criar segundo ovo.
+
+---
+
+# COMO TESTAR
+
+Explique no final como testar:
+
+1. Abrir o repositório:
+   https://github.com/wesley956/ARC---AETHON
+2. Rodar npm install.
+3. Rodar npm run build.
+4. Rodar npm run dev.
+5. Entrar em um save com dragão.
+6. Abrir DragonScreen.
+7. Ir para Expedições.
+8. Enviar Camada 1.
+9. Confirmar que countdown aparece.
+10. Usar DEV ONLY para finalizar rapidamente, se existir.
+11. Coletar retorno.
+12. Confirmar cristais e materiais adicionados.
+13. Confirmar entrada no diário.
+14. Enviar Camada 2.
+15. Testar chance de lesão ou usar DEV ONLY se disponível.
+16. Confirmar que dragão machucado não pode sair em expedição.
+17. Recarregar a página durante uma expedição.
+18. Confirmar que o timer persiste.
+19. Recarregar depois do tempo de retorno.
+20. Confirmar que o botão Coletar retorno aparece.
+21. Confirmar que o jogo não volta para EggScreen.
+
+---
+
+# ENTREGA
+
+Devolva o projeto completo atualizado ou um patch aplicável ao repositório.
+
+Explique:
+
+1. Quais arquivos foram alterados.
+2. Como o ExpeditionSystem funciona.
+3. Como iniciar expedição.
+4. Como o retorno é calculado.
+5. Como materiais são armazenados.
+6. Como lesão funciona.
+7. Como o diário é atualizado.
+8. Como testar.
+9. Se npm run build passou.
+10. O que ficou preparado para o próximo prompt.

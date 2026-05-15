@@ -1,17 +1,60 @@
 # ARC: AETHON — PROMPT 5
-## Implementar Tela do Dragão, Alimentação Básica e Diário Inicial
+## Implementar DragonScreen, Alimentação Básica e Diário Inicial usando o repositório oficial
 
 Você está trabalhando no projeto Arc: Aethon.
 
-A fundação do projeto já existe.
-O sistema de Orbs e Absorção já foi implementado e corrigido.
-A Cena de Nascimento já foi implementada e corrigida.
-O DragonTypeResolver já resolve tipos válidos da Taxonomia Dracônica.
-O nascimento já cria dragonData, diário Dia 1 e transforma o save de ovo para dragão de forma irreversível.
+REPOSITÓRIO OFICIAL:
+https://github.com/wesley956/ARC---AETHON
 
-Agora a missão é implementar o primeiro loop funcional da fase do dragão.
+Antes de alterar qualquer código, leia os arquivos de contexto do repositório:
 
-IMPORTANTE:
+- AI_CONTEXT.md
+- ARC_AETHON_GAME_FLOW_BIBLE.md
+- DECISIONS.md
+- PROMPT_HISTORY.md
+- BACKLOG.md
+- README.md
+
+Esses arquivos são a fonte da verdade do projeto.
+
+Se você não conseguir acessar o repositório diretamente, peça ao usuário para fornecer o ZIP ou os arquivos principais, mas NÃO invente contexto e NÃO comece do zero.
+
+---
+
+# ESTADO ATUAL DO PROJETO
+
+O projeto está aprovado até o Prompt 4.1.
+
+Já foi implementado e aprovado:
+
+- Fundação do projeto
+- React + Vite + TypeScript
+- Save local com localStorage
+- GameContext
+- SaveManager
+- GameStateValidator
+- TimeManager
+- Taxonomia Dracônica
+- Onboarding
+- EggScreen
+- Sistema de Orbs
+- Sistema de Absorção
+- Transição para HatchScene
+- HatchScreen / Cena de Nascimento
+- DragonTypeResolver corrigido
+- DragonFactory
+- Criação de dragonData
+- Diário Dia 1
+- Transição irreversível de ovo para dragão
+
+O próximo passo é implementar:
+
+TELA DO DRAGÃO + ALIMENTAÇÃO BÁSICA + DIÁRIO INICIAL.
+
+---
+
+# IMPORTANTE — NÃO FAÇA ISSO
+
 Não refaça o projeto do zero.
 Não altere a arquitetura principal.
 Não remova GameContext.
@@ -31,10 +74,10 @@ Não implemente Limiar global real.
 Não implemente Dragão da Convergência como jogável.
 Não crie segundo ovo.
 Não crie reset público.
+Não implemente visual final/polish avançado agora.
 
-Sua missão é implementar apenas:
-
-TELA DO DRAGÃO + ALIMENTAÇÃO BÁSICA + DIÁRIO INICIAL.
+A prioridade ainda é lógica, estado, save e gameplay funcional.
+O visual final será feito em prompts futuros.
 
 ---
 
@@ -55,7 +98,7 @@ Regras centrais:
 
 ---
 
-# OBJETIVO
+# OBJETIVO DESTE PROMPT
 
 Transformar a DragonScreen de placeholder em uma tela funcional inicial com:
 
@@ -75,6 +118,7 @@ Transformar a DragonScreen de placeholder em uma tela funcional inicial com:
 14. Diário inicial visível.
 15. Nova entrada de diário opcional ao alimentar.
 16. Preparação visual para expedições futuras, sem implementar envio.
+17. Preparação visual para ninho futuro, sem implementar edição do ninho.
 
 ---
 
@@ -90,7 +134,8 @@ A DragonScreen deve mostrar, de forma clara:
 - cristais;
 - diário;
 - seção de alimentação;
-- seção bloqueada/placeholder de expedições futuras.
+- seção bloqueada/placeholder de expedições futuras;
+- seção simples de ninho futuro, se couber sem complexidade.
 
 Se houver função getDragonTypeById em dragonTaxonomy.ts, usar para exibir:
 
@@ -100,6 +145,7 @@ Se houver função getDragonTypeById em dragonTaxonomy.ts, usar para exibir:
 - descrição/lore curta, se existir.
 
 Se o tipo não for encontrado, usar fallback visual seguro:
+
 "Dragão Desconhecido"
 
 Mas não deve quebrar o app.
@@ -324,8 +370,11 @@ Raiz Dourada:
 Se ainda não houver cálculo de dia, usar data ISO ou dayNumber simples.
 
 Não escrever entradas como:
+
 "+15% vitalidade"
+
 ou
+
 "Consumiu cristal"
 
 O diário deve ser emocional/narrativo.
@@ -486,25 +535,30 @@ O projeto deve:
 
 Explique no final como testar:
 
-1. Criar novo save.
-2. Avançar até nascimento usando fluxo normal ou DebugPanel DEV ONLY.
-3. Nomear o dragão.
-4. Confirmar que DragonScreen abre.
-5. Verificar nome, tipo e vitalidade.
-6. Adicionar cristais via DebugPanel DEV ONLY, se necessário.
-7. Alimentar com cada comida.
-8. Confirmar que o cristal correto diminui.
-9. Confirmar que a vitalidade aumenta.
-10. Confirmar que o diário exibe Dia 1 e novas entradas.
-11. Recarregar a página.
-12. Confirmar que os dados persistem.
-13. Confirmar que o jogo não volta para EggScreen.
+1. Clonar ou abrir o repositório:
+   https://github.com/wesley956/ARC---AETHON
+2. Rodar npm install.
+3. Rodar npm run build.
+4. Rodar npm run dev.
+5. Criar novo save.
+6. Avançar até nascimento usando fluxo normal ou DebugPanel DEV ONLY.
+7. Nomear o dragão.
+8. Confirmar que DragonScreen abre.
+9. Verificar nome, tipo e vitalidade.
+10. Adicionar cristais via DebugPanel DEV ONLY, se necessário.
+11. Alimentar com cada comida.
+12. Confirmar que o cristal correto diminui.
+13. Confirmar que a vitalidade aumenta.
+14. Confirmar que o diário exibe Dia 1 e novas entradas.
+15. Recarregar a página.
+16. Confirmar que os dados persistem.
+17. Confirmar que o jogo não volta para EggScreen.
 
 ---
 
 # ENTREGA
 
-Devolva o projeto completo atualizado.
+Devolva o projeto completo atualizado ou um patch/alterações aplicáveis ao repositório.
 
 Explique:
 
@@ -514,4 +568,5 @@ Explique:
 4. Como os cristais são consumidos.
 5. Como o diário é exibido.
 6. Como testar alimentação.
-7. O que ficou preparado para o próximo prompt.
+7. Se npm run build passou.
+8. O que ficou preparado para o próximo prompt.

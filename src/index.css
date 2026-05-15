@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* ============================================================
+   ARC: AETHON — CUSTOM STYLES
+   Mobile-first idle game with dragon bonding theme.
+   ============================================================ */
+
+/* Custom color variables */
+:root {
+  --aethon-bg: #0a0a0f;
+  --aethon-card: #12121a;
+  --aethon-border: #2a2a3a;
+  --aethon-text: #e8e8ec;
+  --aethon-muted: #6a6a7a;
+  --aethon-accent: #a78bfa;
+  --aethon-glow: #c4b5fd;
+  
+  /* Element colors */
+  --element-fire: #ff6b35;
+  --element-water: #3b82f6;
+  --element-earth: #8b6914;
+  --element-air: #a0d2db;
+  --element-metal: #9ca3af;
+  --element-void: #4a0e4e;
+}
+
+/* Base styling */
+body {
+  background-color: var(--aethon-bg);
+  color: var(--aethon-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Disable user selection for game elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse animation */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+/* Orbit animation */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+}
+
+.animate-orbit {
+  animation: orbit 4s linear infinite;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px) rotate(-1deg); }
+  50% { transform: translateX(3px) rotate(1deg); }
+  75% { transform: translateX(-3px) rotate(-1deg); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Notification slide in */
+@keyframes notification-in {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-notification {
+  animation: notification-in 0.3s ease-out forwards;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--aethon-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--aethon-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--aethon-muted);
+}
+
+/* Vitality bar gradient */
+.vitality-bar {
+  background: linear-gradient(90deg, #22c55e, #84cc16);
+}
+
+/* Low vitality warning */
+.vitality-low {
+  background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+/* Element-specific glows */
+.glow-fire { box-shadow: 0 0 20px rgba(255, 107, 53, 0.4); }
+.glow-water { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+.glow-earth { box-shadow: 0 0 20px rgba(139, 105, 20, 0.4); }
+.glow-air { box-shadow: 0 0 20px rgba(160, 210, 219, 0.4); }
+.glow-metal { box-shadow: 0 0 20px rgba(156, 163, 175, 0.4); }
