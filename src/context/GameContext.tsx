@@ -57,17 +57,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       const loaded = loadSave();
       if (!loaded) { setCurrentScreen('Onboarding'); setIsLoading(false); return; }
-
       const normalizedLoaded = normalizeSave(loaded);
       const validation: SaveValidationResult = validateSave(normalizedLoaded);
       if (!validation.isValid) { setValidationErrors(validation.errors); setCurrentScreen('InvalidSaveState'); setSave(loaded); setIsLoading(false); return; }
-
       let processedSave = applyDailyReset(normalizedLoaded);
       if (processedSave.hasEgg && processedSave.eggData) {
         const updatedEgg = processOfflineOrbs(processedSave.eggData);
         processedSave = { ...processedSave, eggData: updatedEgg };
       }
-
       writeSave(processedSave);
       setSave(processedSave);
       setCurrentScreen(resolveScreen(processedSave));
@@ -90,15 +87,25 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!prev) return prev;
       const updated = updater(prev);
       const validation = validateSave(updated);
-      if (!validation.isValid) { console.error('[GameContext] Save update would create invalid state!', validation.errors); setValidationErrors(validation.errors); setCurrentScreen('InvalidSaveState'); return prev; }
+      if (!validation.isValid) {
+        console.error('[GameContext] Save update would create invalid state!', validation.errors);
+        setValidationErrors(validation.errors);
+        setCurrentScreen('InvalidSaveState');
+        return prev;
+      }
       writeSave(updated);
-      const newScreen = resolveScreen(updated);
-      setCurrentScreen(newScreen);
+      setCurrentScreen(resolveScreen(updated));
       return updated;
     });
   }, []);
 
-  const clearSave = useCallback(() => { deleteSave(); setSave(null); setValidationErrors([]); setCurrentScreen('Onboarding'); }, []);
+  const clearSave = useCallback(() => {
+    deleteSave();
+    setSave(null);
+    setValidationErrors([]);
+    setCurrentScreen('Onboarding');
+  }, []);
+
   const navigateTo = useCallback((screen: AppScreen) => { setCurrentScreen(screen); }, []);
 
   return (

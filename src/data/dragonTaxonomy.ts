@@ -37,17 +37,42 @@ const thresholdVariants: DragonType[] = [
 ];
 
 const convergenceDragon: DragonType = {
-  id: 'convergence', name: 'Dragão da Convergência', category: 'convergence',
-  elements: ['fire', 'water', 'earth', 'air', 'metal', 'void'], isHidden: true,
+  id: 'convergence',
+  name: 'Dragão da Convergência',
+  category: 'convergence',
+  elements: ['fire', 'water', 'earth', 'air', 'metal', 'void'],
+  isHidden: true,
 };
 
-export const DRAGON_TAXONOMY: DragonType[] = [...pureLineages, ...fusedPublicLineages, ...thresholdVariants, convergenceDragon];
+export const DRAGON_TAXONOMY: DragonType[] = [
+  ...pureLineages,
+  ...fusedPublicLineages,
+  ...thresholdVariants,
+  convergenceDragon,
+];
 
-export function getPublicLineages(): DragonType[] { return DRAGON_TAXONOMY.filter((d) => !d.isHidden); }
-export function getDragonTypeById(id: string): DragonType | undefined { return DRAGON_TAXONOMY.find((d) => d.id === id); }
-export function isThresholdDragon(id: string): boolean { return getDragonTypeById(id)?.category === 'threshold_variant'; }
-export function isConvergenceDragon(id: string): boolean { return id === 'convergence'; }
+export function getPublicLineages(): DragonType[] {
+  return DRAGON_TAXONOMY.filter((d) => !d.isHidden);
+}
+
+export function getDragonTypeById(id: string): DragonType | undefined {
+  return DRAGON_TAXONOMY.find((d) => d.id === id);
+}
+
+export function isThresholdDragon(id: string): boolean {
+  return getDragonTypeById(id)?.category === 'threshold_variant';
+}
+
+export function isConvergenceDragon(id: string): boolean {
+  return id === 'convergence';
+}
+
 export function getCategoryDisplayName(category: string): string {
-  const names: Record<string, string> = { pure: 'Linhagem Pura', fused_public: 'Linhagem Fundida', threshold_variant: 'Linhagem Desconhecida', convergence: 'Linhagem Única' };
+  const names: Record<string, string> = {
+    pure: 'Linhagem Pura',
+    fused_public: 'Linhagem Fundida',
+    threshold_variant: 'Linhagem Desconhecida',
+    convergence: 'Linhagem Única',
+  };
   return names[category] || 'Desconhecido';
 }

@@ -22,8 +22,6 @@ export type AppScreen =
 export type PublicElementType = 'fire' | 'water' | 'earth' | 'air' | 'metal';
 export type HiddenElementType = 'void';
 export type ElementType = PublicElementType | HiddenElementType;
-
-/** MVP orbs are limited to fire, water, earth only */
 export type MvpOrbElement = 'fire' | 'water' | 'earth';
 
 // --- ORBS ---
@@ -94,7 +92,7 @@ export interface ExpeditionState {
 }
 
 export interface ExpeditionRewards {
-  crystals: Partial<CrystalInventory>;
+  crystals: Partial<Record<string, number>>;
   materials: Partial<MaterialInventory>;
   wasInjured: boolean;
   foundMemoryEcho: boolean;
@@ -231,7 +229,7 @@ export interface FoodRecipe {
   id: string;
   name: string;
   emoji: string;
-  cost: Partial<CrystalInventory>;
+  cost: Partial<Record<string, number>>;
   vitalityGain: number;
   traitPush: TraitKey;
   traitAmount: number;

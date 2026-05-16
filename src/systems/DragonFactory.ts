@@ -2,7 +2,7 @@
 // ARC: AETHON — DRAGON FACTORY
 // ============================================================
 
-import { DragonData, DiaryEntry, CrystalInventory, NestData, ProfessionProgress, PersonalityTraits, ElementType, MaterialInventory } from '../types/game';
+import { DragonData, DiaryEntry, CrystalInventory, PersonalityTraits, ElementType, MaterialInventory } from '../types/game';
 import { ResolvedDragonType, getInitialPersonalityTraits } from './DragonTypeResolver';
 import { INITIAL_DRAGON_VITALITY } from '../constants/gameConstants';
 
@@ -17,23 +17,30 @@ function createFirstDiaryEntry(): DiaryEntry {
 function createInitialCrystals(): CrystalInventory { return { fire: 3, water: 3, earth: 3, air: 0, metal: 0 }; }
 function createInitialMaterials(): MaterialInventory { return { living_ash: 0, ancient_stone: 0, shell_fragment: 0, memory_echo: 0 }; }
 
-function createInitialNest(): NestData {
-  return { comfort: 0, style: 'basic', slots: { base: null, comfort: null, relic: null }, appliedUpgrades: [], lastUpdatedAt: null };
+function createInitialNest() {
+  return { comfort: 0, style: 'basic' as const, slots: { base: null, comfort: null, relic: null }, appliedUpgrades: [], lastUpdatedAt: null };
 }
 
-function createInitialProfessionProgress(): ProfessionProgress {
+function createInitialProfessionProgress() {
   return { discoveredProfession: null, professionXp: 0, professionLevel: 0, hints: [], tendencies: { guardian: 0, forge: 0, memory: 0 } };
 }
 
 export function createDragonData(resolvedType: ResolvedDragonType, dragonName: string): DragonData {
   const personalityTraits: PersonalityTraits = getInitialPersonalityTraits(resolvedType.dominantElement, resolvedType.secondaryElement);
   return {
-    dragonName: dragonName.trim(), dragonType: resolvedType.dragonTypeId, dominantElement: resolvedType.dominantElement as ElementType,
-    vitality: INITIAL_DRAGON_VITALITY, personalityTraits,
+    dragonName: dragonName.trim(),
+    dragonType: resolvedType.dragonTypeId,
+    dominantElement: resolvedType.dominantElement as ElementType,
+    vitality: INITIAL_DRAGON_VITALITY,
+    personalityTraits,
     isOnExpedition: false, expeditionEndTime: null, expeditionZoneId: null, expeditionLayerId: null, expeditionStartTime: null,
     isInjured: false, recoveryTime: null,
-    diaryEntries: [createFirstDiaryEntry()], crystals: createInitialCrystals(), materials: createInitialMaterials(),
-    nestData: createInitialNest(), professionProgress: createInitialProfessionProgress(), foodsEatenFirstTime: [],
+    diaryEntries: [createFirstDiaryEntry()],
+    crystals: createInitialCrystals(),
+    materials: createInitialMaterials(),
+    nestData: createInitialNest(),
+    professionProgress: createInitialProfessionProgress(),
+    foodsEatenFirstTime: [],
   };
 }
 

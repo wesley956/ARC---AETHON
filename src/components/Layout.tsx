@@ -1,6 +1,5 @@
 // ============================================================
 // ARC: AETHON — LAYOUT
-// Mobile-first container for all screens.
 // ============================================================
 
 import React from 'react';
@@ -12,8 +11,10 @@ interface LayoutProps {
 
 export default function Layout({ children, className = '' }: LayoutProps) {
   return (
-    <div className={`min-h-screen-safe flex flex-col container-mobile ${className}`}>
-      {children}
+    <div className={`min-h-screen-safe flex flex-col items-center bg-[#0a0a12] ${className}`}>
+      <main className="w-full max-w-md mx-auto flex-1 flex flex-col safe-area-bottom">
+        {children}
+      </main>
     </div>
   );
 }

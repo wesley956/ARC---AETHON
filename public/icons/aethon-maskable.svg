@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a1030"/>
+      <stop offset="100%" stop-color="#070711"/>
+    </radialGradient>
+    <radialGradient id="eggGrad" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="40%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Full background for maskable — no transparent edges -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Central content within safe zone (center 80% = 409.6px) -->
+  <!-- Egg shape centered -->
+  <ellipse cx="256" cy="245" rx="85" ry="115" fill="url(#eggGrad)" filter="url(#glow)"/>
+  <!-- Egg highlight -->
+  <ellipse cx="242" cy="205" rx="30" ry="45" fill="white" opacity="0.1"/>
+  <!-- Crack lines -->
+  <path d="M232 190 L245 208 L237 222 L250 240" stroke="#fbbf24" stroke-width="2.5" fill="none" opacity="0.7" stroke-linecap="round"/>
+  <path d="M262 185 L270 205 L260 218" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <!-- Sparkles -->
+  <circle cx="210" cy="160" r="3" fill="#fbbf24" opacity="0.8"/>
+  <circle cx="300" cy="170" r="2.5" fill="#c4b5fd" opacity="0.7"/>
+  <circle cx="195" cy="290" r="2" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="310" cy="300" r="2.5" fill="#c4b5fd" opacity="0.5"/>
+</svg>

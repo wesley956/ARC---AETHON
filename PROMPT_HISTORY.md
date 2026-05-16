@@ -15,7 +15,8 @@
 - Prompt 9: Polimento Mobile Funcional.
 - Prompt 10: Polimento Visual Egg/Hatch.
 - Prompt 11: Polimento Visual Dragon/Expedição/Materiais/Ninho.
+- Prompt 12: PWA / Instalação Mobile / Manifest / Ícones / Service Worker / Install Prompt.
 
 Próximo:
 
-- Prompt 12: PWA / instalação mobile.
+- Prompt 13: Preparação de release / testes finais OU Polimento final de UX.

@@ -69,21 +69,33 @@ export const FOOD_RECIPES: Record<string, FoodRecipe> = {
 } as const;
 
 // --- MATERIALS ---
-export const MATERIAL_DEFINITIONS: Record<MaterialId, MaterialDefinition> = {
+export const MATERIAL_DEFINITIONS: Record<string, MaterialDefinition> = {
   living_ash: {
-    id: 'living_ash', name: 'Cinza Viva', emoji: '🔥', rarity: 'common',
+    id: 'living_ash',
+    name: 'Cinza Viva',
+    emoji: '🔥',
+    rarity: 'common',
     description: 'Cinzas que ainda guardam calor das ruínas antigas.',
   },
   ancient_stone: {
-    id: 'ancient_stone', name: 'Pedra Antiga', emoji: '🪨', rarity: 'common',
+    id: 'ancient_stone',
+    name: 'Pedra Antiga',
+    emoji: '🪨',
+    rarity: 'common',
     description: 'Fragmentos de construções que resistiram ao tempo.',
   },
   shell_fragment: {
-    id: 'shell_fragment', name: 'Fragmento de Casca', emoji: '🥚', rarity: 'uncommon',
+    id: 'shell_fragment',
+    name: 'Fragmento de Casca',
+    emoji: '🥚',
+    rarity: 'uncommon',
     description: 'Restos de cascas que podem ter sido de dragões.',
   },
   memory_echo: {
-    id: 'memory_echo', name: 'Eco de Memória', emoji: '✨', rarity: 'rare',
+    id: 'memory_echo',
+    name: 'Eco de Memória',
+    emoji: '✨',
+    rarity: 'rare',
     description: 'Uma lembrança cristalizada do passado de Aethon.',
   },
 };
@@ -130,20 +142,34 @@ export const EXPEDITION_ZONES: Record<string, ExpeditionZoneConfig> = {
     description: 'As bordas queimadas de uma civilização antiga.',
     layers: {
       fronteira: {
-        id: 'fronteira', name: 'Fronteira',
+        id: 'fronteira',
+        name: 'Fronteira',
         description: 'As bordas externas das ruínas.',
         durationRange: [30 * 60 * 1000, 2 * 60 * 60 * 1000],
         injuryChance: 0,
-        rewards: { crystalType: 'fire', crystalRange: [1, 3], commonMaterialChance: 1.0, uncommonMaterialChance: 0, rareMaterialChance: 0 },
+        rewards: {
+          crystalType: 'fire',
+          crystalRange: [1, 3],
+          commonMaterialChance: 1.0,
+          uncommonMaterialChance: 0,
+          rareMaterialChance: 0,
+        },
         diaryEntry: 'Fui às bordas de Ignareth hoje. O cheiro de cinzas não me incomodou.',
         injuryDiaryEntry: '',
       },
       interior: {
-        id: 'interior', name: 'Interior',
+        id: 'interior',
+        name: 'Interior',
         description: 'O coração das ruínas. Mais perigoso.',
         durationRange: [3 * 60 * 60 * 1000, 6 * 60 * 60 * 1000],
         injuryChance: 0.1,
-        rewards: { crystalType: 'mixed', crystalRange: [2, 5], commonMaterialChance: 0.5, uncommonMaterialChance: 0.5, rareMaterialChance: 0.15 },
+        rewards: {
+          crystalType: 'mixed',
+          crystalRange: [2, 5],
+          commonMaterialChance: 0.5,
+          uncommonMaterialChance: 0.5,
+          rareMaterialChance: 0.15,
+        },
         diaryEntry: 'Fui mais fundo dessa vez. Vi algo que não consigo descrever ainda.',
         injuryDiaryEntry: 'Voltei machucado. Não vou contar o que encontrei lá.',
       },
@@ -154,30 +180,49 @@ export const EXPEDITION_ZONES: Record<string, ExpeditionZoneConfig> = {
 // --- SAVE ---
 export const SAVE_KEY = 'arc_aethon_save';
 
-// --- THRESHOLD DRAGONS ---
-export const MAX_THRESHOLD_DRAGONS = 4;
-export const THRESHOLD_RESERVED_FOR_CREATOR = 1;
-
 // --- ELEMENT LABELS ---
 export const ELEMENT_LABELS: Record<string, string> = {
-  fire: 'Fogo', water: 'Água', earth: 'Terra', air: 'Ar', metal: 'Metal', void: 'Vazio',
+  fire: 'Fogo',
+  water: 'Água',
+  earth: 'Terra',
+  air: 'Ar',
+  metal: 'Metal',
+  void: 'Vazio',
 };
 
 export const ELEMENT_COLORS: Record<string, string> = {
-  fire: '#ff6b35', water: '#3b82f6', earth: '#8b6914', air: '#a0d2db', metal: '#9ca3af', void: '#4a0e4e',
+  fire: '#ff6b35',
+  water: '#3b82f6',
+  earth: '#8b6914',
+  air: '#a0d2db',
+  metal: '#9ca3af',
+  void: '#4a0e4e',
 };
 
 export const ELEMENT_EMOJI: Record<string, string> = {
-  fire: '🔥', water: '💧', earth: '🌍', air: '💨', metal: '⚙️', void: '🌑',
+  fire: '🔥',
+  water: '💧',
+  earth: '🌍',
+  air: '💨',
+  metal: '⚙️',
+  void: '🌑',
 };
 
 // --- TRAIT LABELS ---
 export const TRAIT_LABELS: Record<string, string> = {
-  courage: 'Corajoso', gentleness: 'Gentil', loyalty: 'Leal', curiosity: 'Curioso', resilience: 'Resiliente',
+  courage: 'Corajoso',
+  gentleness: 'Gentil',
+  loyalty: 'Leal',
+  curiosity: 'Curioso',
+  resilience: 'Resiliente',
 };
 
 export const TRAIT_EMOJI: Record<string, string> = {
-  courage: '⚔️', gentleness: '💜', loyalty: '🤝', curiosity: '🔍', resilience: '🛡️',
+  courage: '⚔️',
+  gentleness: '💜',
+  loyalty: '🤝',
+  curiosity: '🔍',
+  resilience: '🛡️',
 };
 
 // --- HATCH SEQUENCE TIMING ---

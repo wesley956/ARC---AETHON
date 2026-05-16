@@ -1,0 +1,121 @@
+# PROMPT 12 — PWA / INSTALAÇÃO MOBILE / MANIFEST / ÍCONES / SPLASH
+
+## Objetivo
+
+Transformar Arc: Aethon em um PWA instalável e preparado para uso mobile, sem mexer na lógica central do jogo.
+
+## O que foi implementado
+
+### 1. Web App Manifest
+- Arquivo: `public/manifest.webmanifest`
+- name: "Arc: Aethon"
+- short_name: "Aethon"
+- display: standalone
+- orientation: portrait
+- theme_color: #7c3aed
+- background_color: #070711
+- lang: pt-BR
+
+### 2. Ícones PWA
+- `public/icons/aethon-icon.svg` — Ícone principal (ovo místico roxo/dourado com fundo escuro)
+- `public/icons/aethon-maskable.svg` — Ícone maskable (conteúdo centralizado, seguro para masks)
+- `public/icons/apple-touch-icon.svg` — Ícone Apple Touch (otimizado para iOS)
+
+### 3. Meta tags mobile (index.html)
+- theme-color: #7c3aed
+- apple-mobile-web-app-capable: yes
+- apple-mobile-web-app-title: Aethon
+- apple-mobile-web-app-status-bar-style: black-translucent
+- viewport com viewport-fit=cover
+- mobile-web-app-capable: yes
+- color-scheme: dark
+- manifest link
+- apple-touch-icon link
+- favicon SVG link
+
+### 4. Service Worker
+- Arquivo: `public/sw.js`
+- Estratégia: cache-first para assets estáticos, network-first para navegação
+- Cache básico de `/` e `/manifest.webmanifest`
+- Limpeza de caches antigos no activate
+- Fallback para `/` em navegação offline
+
+### 5. Registro do Service Worker
+- Arquivo: `src/main.tsx`
+- Registro apenas em produção (import.meta.env.PROD)
+- Error handling com console.warn
+- Não bloqueia renderização
+
+### 6. Install App Prompt
+- Componente: `src/components/InstallAppPrompt.tsx`
+- Captura evento `beforeinstallprompt`
+- UI discreta com "Instalar" e "Agora não"
+- Salva preferência em `aethon_install_prompt_dismissed` (localStorage separado do save)
+- Não bloqueia gameplay
+- Não aparece se já foi dispensado
+
+### 7. CSS PWA / Safe Area
+- Arquivo: `src/index.css`
+- `min-height: 100dvh` no body
+- `env(safe-area-inset-bottom/top)` para notched devices
+- Background escuro no body (#0a0a12)
+- overflow-x: hidden
+- overscroll-behavior: contain
+
+## Arquivos criados
+
+- `public/manifest.webmanifest`
+- `public/sw.js`
+- `public/icons/aethon-icon.svg`
+- `public/icons/aethon-maskable.svg`
+- `public/icons/apple-touch-icon.svg`
+- `src/components/InstallAppPrompt.tsx`
+- `src/vite-env.d.ts`
+- `docs/prompts/PROMPT_12_pwa_instalacao_mobile.txt`
+
+## Arquivos modificados
+
+- `index.html` — Meta tags PWA, manifest link, apple tags, viewport
+- `src/main.tsx` — Service worker registration
+- `src/index.css` — Safe-area CSS, PWA-friendly body styles
+- `src/App.tsx` — Import e render do InstallAppPrompt
+- `README.md` — Atualizado para Prompt 12
+- `AI_CONTEXT.md` — Atualizado para Prompt 12
+- `PROMPT_HISTORY.md` — Prompt 12 adicionado
+- `BACKLOG.md` — Atualizado
+
+## O que NÃO foi alterado
+
+- GameContext
+- SaveManager
+- GameStateValidator
+- TimeManager
+- DragonTypeResolver
+- DragonFactory
+- DragonCareSystem
+- ExpeditionSystem
+- NestSystem
+- EggScreen
+- HatchScreen
+- DragonScreen
+- OnboardingScreen
+- SplashScreen
+- InvalidSaveScreen
+- Qualquer lógica de gameplay
+- Valores de balanceamento
+- Save/localStorage do jogo
+
+## Como testar
+
+1. `npm run build`
+2. `npm run preview`
+3. DevTools > Application > Manifest — confirmar nome, display, theme_color, ícones
+4. DevTools > Application > Service Workers — confirmar registro
+5. Chrome mobile: "Add to Home Screen" deve aparecer
+6. Testar InstallAppPrompt quando beforeinstallprompt disparar
+7. Testar offline: build > preview > offline > app deve carregar shell
+8. Testar safe-area em dispositivo com notch
+
+## Próximo prompt
+
+Prompt 13 — Preparação de release / testes finais OU Prompt 13 — Polimento final de UX.

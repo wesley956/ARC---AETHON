@@ -8,7 +8,7 @@ https://github.com/wesley956/ARC---AETHON
 
 ## Estado atual
 
-Projeto aprovado até o **Prompt 11**.
+Projeto aprovado até o **Prompt 12**.
 
 Já existe:
 
@@ -39,10 +39,17 @@ Já existe:
 - **Touch-friendly interactions**
 - **Fixed bottom navigation**
 - **Safe area support**
+- **PWA instalável (Prompt 12)**
+- **Web App Manifest (standalone, portrait, theme_color #7c3aed)**
+- **Service Worker com cache básico de app shell**
+- **Install App Prompt (beforeinstallprompt)**
+- **Ícones SVG: aethon-icon, aethon-maskable, apple-touch-icon**
+- **Meta tags mobile + Apple mobile web app tags**
+- **Safe-area CSS (env safe-area-inset, 100dvh)**
 
 ## Próximo prompt
 
-docs/prompts/PROMPT_12_pwa_instalacao_mobile.txt
+Prompt 13 — Preparação de release / testes finais OU Prompt 13 — Polimento final de UX.
 
 ## Regras críticas
 

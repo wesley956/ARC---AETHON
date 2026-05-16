@@ -31,8 +31,8 @@ function validateDragonData(dragonData: unknown, errors: string[]): void {
 export function validateSave(save: unknown): SaveValidationResult {
   const errors: string[] = [];
   if (!save || typeof save !== 'object') return { isValid: false, errors: ['Save não é um objeto válido.'] };
-
   const s = save as Record<string, unknown>;
+
   if (!s.accountId || typeof s.accountId !== 'string') errors.push('Save não possui accountId válido.');
   if (s.saveVersion === undefined || s.saveVersion === null) errors.push('saveVersion ausente no save.');
   else if (typeof s.saveVersion !== 'number') errors.push('saveVersion não é um número.');

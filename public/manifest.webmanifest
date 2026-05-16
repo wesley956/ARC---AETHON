@@ -1,0 +1,27 @@
+{
+  "name": "Arc: Aethon",
+  "short_name": "Aethon",
+  "description": "Cuide de um único dragão em um mundo pós-colapso.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070711",
+  "theme_color": "#7c3aed",
+  "categories": ["games", "entertainment"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/aethon-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/aethon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Repositório oficial:
 
 https://github.com/wesley956/ARC---AETHON
 
-Versão atual deste pacote: **aprovada até o Prompt 11**.
+Versão atual deste pacote: **aprovada até o Prompt 12**.
 
 ## Estado atual aprovado
 
@@ -33,12 +33,24 @@ Versão atual deste pacote: **aprovada até o Prompt 11**.
 - **Touch-friendly buttons (44px min)**
 - **Fixed bottom navigation**
 - **Safe area support for notched devices**
+- **PWA instalável (Prompt 12)**
+- **Web App Manifest com display standalone**
+- **Service Worker com cache básico**
+- **Install App Prompt discreto**
+- **Ícones SVG: principal, maskable, apple-touch**
+- **Meta tags mobile completas**
+- **Apple mobile web app tags**
+- **Safe-area CSS para notch**
 
 ## Próximo passo
 
 Executar:
 
-docs/prompts/PROMPT_12_pwa_instalacao_mobile.txt
+docs/prompts/PROMPT_13_preparacao_release.txt
+
+OU
+
+docs/prompts/PROMPT_13_polimento_final_ux.txt
 
 ## Rodar localmente
 
@@ -47,6 +59,15 @@ npm install
 npm run build
 npm run dev
 ```
+
+## Testar PWA
+
+1. `npm run build && npm run preview`
+2. DevTools > Application > Manifest
+3. Confirmar nome "Arc: Aethon", display standalone, theme_color #7c3aed
+4. DevTools > Application > Service Workers
+5. Chrome: "Add to Home Screen" ou "Install App"
+6. Testar offline após primeiro load
 
 ## Testar responsividade
 

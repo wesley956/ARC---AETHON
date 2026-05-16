@@ -2,12 +2,14 @@
 
 ## Próximo agora
 
-Prompt 12 — PWA / instalação mobile.
+Prompt 13 — Preparação de release / testes finais.
+OU
+Prompt 13 — Polimento final de UX.
 
 ## Depois
 
-Prompt 13 — Monetização narrativa básica.
-Prompt 14 — Sons e feedback háptico.
+Prompt 14 — Monetização narrativa básica.
+Prompt 15 — Sons e feedback háptico.
 
 ## Futuro
 
