@@ -12,9 +12,9 @@ export default function DebugPanel() {
   const { save, clearSave, updateSave, currentScreen } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isDev = typeof window !== 'undefined' &&
+  const isDev = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
+  
   if (!isDev) return null;
 
   const addTestOrbs = (count: number) => {

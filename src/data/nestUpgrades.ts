@@ -1,5 +1,6 @@
 // ============================================================
 // ARC: AETHON — NEST UPGRADES DATA
+// Defines available nest upgrades and their costs/effects.
 // ============================================================
 
 import { MaterialId, NestSlotType, ElementType, NestStyle } from '../types/game';
@@ -15,10 +16,14 @@ export interface NestUpgradeDefinition {
   description: string;
   diaryEntry: string;
   emoji: string;
-  professionTendency?: { key: 'guardian' | 'forge' | 'memory'; amount: number };
+  professionTendency?: {
+    key: 'guardian' | 'forge' | 'memory';
+    amount: number;
+  };
 }
 
 export const NEST_UPGRADES: NestUpgradeDefinition[] = [
+  // --- BASE SLOT ---
   {
     id: 'base_pedra_antiga',
     name: 'Base de Pedra Antiga',
@@ -32,6 +37,7 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
     emoji: '🪨',
     professionTendency: { key: 'guardian', amount: 1 },
   },
+  // --- COMFORT SLOT ---
   {
     id: 'comfort_cinza_viva',
     name: 'Braseiro de Cinza Viva',
@@ -45,6 +51,7 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
     emoji: '🔥',
     professionTendency: { key: 'forge', amount: 1 },
   },
+  // --- RELIC SLOT ---
   {
     id: 'relic_eco_memoria',
     name: 'Relíquia de Eco',
@@ -61,9 +68,9 @@ export const NEST_UPGRADES: NestUpgradeDefinition[] = [
 ];
 
 export function getUpgradesForSlot(slotType: NestSlotType): NestUpgradeDefinition[] {
-  return NEST_UPGRADES.filter((u) => u.slotType === slotType);
+  return NEST_UPGRADES.filter(u => u.slotType === slotType);
 }
 
 export function getUpgradeById(id: string): NestUpgradeDefinition | undefined {
-  return NEST_UPGRADES.find((u) => u.id === id);
+  return NEST_UPGRADES.find(u => u.id === id);
 }

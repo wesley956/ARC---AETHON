@@ -1,65 +1,242 @@
 // ============================================================
 // ARC: AETHON — NEST PANEL
+// Prompt 11: Emotional nest as dragon's home.
 // ============================================================
 
-import { useState } from 'react';
-import { DragonData } from '../types/game';
-import { NEST_UPGRADES } from '../data/nestUpgrades';
-import { MATERIAL_DEFINITIONS } from '../constants/gameConstants';
-import { canApplyUpgrade, applyNestUpgrade } from '../systems/NestSystem';
-import { getComfortDescription } from '../utils/nest';
 import { useGame } from '../context/GameContext';
+import { normalizeNestData, getComfortDescription } from '../utils/nest';
+import { normalizeMaterialInventory } from '../utils/materials';
+import { NEST_UPGRADES, NestUpgradeDefinition } from '../data/nestUpgrades';
+import { MATERIAL_DEFINITIONS } from '../constants/gameConstants';
+import { applyNestUpgrade, canApplyUpgrade } from '../systems/NestSystem';
+import { useState } from 'react';
 import FloatingNotification from './FloatingNotification';
 
-export default function NestPanel({ dragon }: { dragon: DragonData }) {
-  const { updateSave } = useGame();
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const nest = dragon.nestData;
+// Style colors
+const STYLE_VISUALS = {
+  basic: { emoji: '🏠', name: 'Simples', color: '#6a6a7a' },
+  warm: { emoji: '🔥', name: 'Aquecido', color: '#ff6b35' },
+  stone: { emoji: '🪨', name: 'Rochoso', color: '#a78bfa' },
+  memory: { emoji: '✨', name: 'Memória', color: '#fbbf24' },
+};
 
-  const handleApply = (upgradeId: string) => {
-    const upgrade = NEST_UPGRADES.find(u => u.id === upgradeId);
-    if (!upgrade) return;
+export default function NestPanel() {
+  const { save, updateSave } = useGame();
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  const dragon = save?.dragonData;
+  if (!dragon) return null;
+
+  const nest = normalizeNestData(dragon.nestData);
+  const materials = normalizeMaterialInventory(dragon.materials);
+  const styleVisual = STYLE_VISUALS[nest.style];
+
+  const handleApplyUpgrade = (upgrade: NestUpgradeDefinition) => {
     const result = applyNestUpgrade(dragon, upgrade);
+    
     if (result.success && result.newDragonData) {
-      updateSave(prev => ({ ...prev, dragonData: result.newDragonData! }));
+      updateSave((prev) => ({
+        ...prev,
+        dragonData: result.newDragonData!,
+      }));
       setNotification({ message: result.message, type: 'success' });
     } else {
       setNotification({ message: result.message, type: 'error' });
     }
   };
 
+  // Group upgrades by slot
+  const upgradesBySlot = {
+    base: NEST_UPGRADES.filter(u => u.slotType === 'base'),
+    comfort: NEST_UPGRADES.filter(u => u.slotType === 'comfort'),
+    relic: NEST_UPGRADES.filter(u => u.slotType === 'relic'),
+  };
+
   return (
     <div className="space-y-4">
-      <div className="p-4 rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(42,42,58,0.5)' }}>
-        <div className="flex items-center justify-between mb-3"><span className="text-lg">🏠</span><span className="text-sm text-[#e8e8ec]">Conforto: {nest.comfort}%</span></div>
-        <p className="text-xs text-[#6a6a7a] mb-2">{getComfortDescription(nest.comfort)}</p>
-        <div className="flex gap-2 text-xs text-[#6a6a7a]">
-          {(['base', 'comfort', 'relic'] as const).map(slotType => {
-            const slot = nest.slots[slotType];
-            return (<div key={slotType} className="flex-1 text-center p-2 rounded-lg" style={{ background: slot ? 'rgba(167,139,250,0.1)' : 'rgba(26,26,36,0.5)', border: `1px solid ${slot ? 'rgba(167,139,250,0.3)' : 'rgba(42,42,58,0.3)'}` }}><p className="text-[10px] uppercase">{slotType === 'base' ? 'Base' : slotType === 'comfort' ? 'Conforto' : 'Relíquia'}</p><p className="text-sm mt-1">{slot ? '✅' : '➖'}</p></div>);
-          })}
+      {notification && (
+        <FloatingNotification 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification(null)}
+        />
+      )}
+
+      {/* Nest overview card */}
+      <div 
+        className="relative overflow-hidden rounded-xl"
+        style={{
+          background: `linear-gradient(135deg, rgba(18, 18, 26, 0.8) 0%, ${styleVisual.color}10 100%)`,
+          border: `1px solid ${styleVisual.color}30`,
+        }}
+      >
+        {/* Ambient glow */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: `radial-gradient(ellipse at bottom, ${styleVisual.color}40 0%, transparent 70%)`,
+          }}
+        />
+
+        <div className="relative p-5 space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-14 h-14 rounded-xl flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${styleVisual.color}30 0%, ${styleVisual.color}10 100%)`,
+                  border: `1px solid ${styleVisual.color}40`,
+                  boxShadow: `0 0 20px ${styleVisual.color}20`,
+                }}
+              >
+                <span className="text-3xl">{styleVisual.emoji}</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[#e8e8ec]">Ninho de {dragon.dragonName}</h3>
+                <p className="text-xs" style={{ color: styleVisual.color }}>
+                  Estilo: {styleVisual.name}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Comfort bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[#a0a0b8]">Conforto</span>
+              <span className="font-medium" style={{ color: styleVisual.color }}>
+                {nest.comfort}%
+              </span>
+            </div>
+            <div className="w-full h-3 bg-[#1a1a24] rounded-full overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all duration-700"
+                style={{ 
+                  width: `${nest.comfort}%`,
+                  background: `linear-gradient(90deg, ${styleVisual.color} 0%, ${styleVisual.color}aa 100%)`,
+                  boxShadow: nest.comfort > 0 ? `0 0 10px ${styleVisual.color}40` : 'none',
+                }}
+              />
+            </div>
+            <p className="text-xs text-[#6a6a7a] italic">
+              {getComfortDescription(nest.comfort)}
+            </p>
+          </div>
+
+          {/* Active slots preview */}
+          {(nest.slots.base || nest.slots.comfort || nest.slots.relic) && (
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[#2a2a3a]/30">
+              {nest.slots.base && (
+                <span className="text-xs px-2 py-1 rounded-full bg-[#1a1a24] text-[#a0a0b8]">
+                  🪨 {nest.slots.base.name}
+                </span>
+              )}
+              {nest.slots.comfort && (
+                <span className="text-xs px-2 py-1 rounded-full bg-[#1a1a24] text-[#a0a0b8]">
+                  🔥 {nest.slots.comfort.name}
+                </span>
+              )}
+              {nest.slots.relic && (
+                <span className="text-xs px-2 py-1 rounded-full bg-[#1a1a24] text-[#a0a0b8]">
+                  ✨ {nest.slots.relic.name}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Available upgrades */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-[#e8e8ec]">Melhorias Disponíveis</h3>
-        {NEST_UPGRADES.map(upgrade => {
-          const canResult = canApplyUpgrade(dragon, upgrade);
-          const isApplied = nest.appliedUpgrades.includes(upgrade.id);
-          const materialId = Object.keys(upgrade.cost)[0];
-          const matDef = MATERIAL_DEFINITIONS[materialId];
-          return (
-            <div key={upgrade.id} className="p-3 rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: `1px solid ${canResult.canApply ? 'rgba(167,139,250,0.3)' : 'rgba(42,42,58,0.3)'}` }}>
-              <div className="flex items-center gap-2 mb-2"><span>{upgrade.emoji}</span><span className="text-sm font-medium text-[#e8e8ec]">{upgrade.name}</span></div>
-              <p className="text-xs text-[#6a6a7a] mb-1">{upgrade.description}</p>
-              <p className="text-xs text-[#6a6a7a] mb-2">{matDef?.emoji} {Object.values(upgrade.cost)[0]}× {matDef?.name} · +{upgrade.comfortBonus}% conforto</p>
-              <button onClick={() => handleApply(upgrade.id)} disabled={!canResult.canApply} className="w-full py-2 text-sm font-semibold rounded-lg transition-all active:scale-[0.98]" style={{ background: isApplied ? 'rgba(34,197,94,0.2)' : canResult.canApply ? '#a78bfa' : 'rgba(42,42,58,0.5)', color: isApplied ? '#4ade80' : canResult.canApply ? 'white' : '#6a6a7a' }}>
-                {isApplied ? '✅ Aplicado' : canResult.canApply ? 'Aplicar' : 'Materiais insuficientes'}
-              </button>
-            </div>
-          );
-        })}
+        <h4 className="text-sm font-medium text-[#a0a0b8] px-1">
+          Melhorias Disponíveis
+        </h4>
+
+        {Object.entries(upgradesBySlot).map(([slotType, upgrades]) => (
+          <div key={slotType} className="space-y-2">
+            {upgrades.map((upgrade) => {
+              const canApply = canApplyUpgrade(dragon, upgrade);
+              const isApplied = nest.slots[upgrade.slotType]?.id === upgrade.id;
+              const materialId = Object.keys(upgrade.cost)[0];
+              const materialAmount = Object.values(upgrade.cost)[0] || 1;
+              const materialDef = MATERIAL_DEFINITIONS[materialId as keyof typeof MATERIAL_DEFINITIONS];
+              const hasEnough = (materials[materialId as keyof typeof materials] || 0) >= materialAmount;
+
+              return (
+                <div 
+                  key={upgrade.id}
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    background: isApplied 
+                      ? `linear-gradient(135deg, ${STYLE_VISUALS[upgrade.style].color}15 0%, rgba(18, 18, 26, 0.6) 100%)`
+                      : 'linear-gradient(135deg, rgba(18, 18, 26, 0.6) 0%, rgba(18, 18, 26, 0.4) 100%)',
+                    border: `1px solid ${isApplied ? STYLE_VISUALS[upgrade.style].color + '40' : 'rgba(42, 42, 58, 0.5)'}`,
+                  }}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{upgrade.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-medium text-[#e8e8ec]">{upgrade.name}</h5>
+                          {isApplied && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#4ade80]/20 text-[#4ade80]">
+                              Ativo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#6a6a7a] mt-1">{upgrade.description}</p>
+                        
+                        {/* Cost and effect */}
+                        <div className="flex items-center gap-3 mt-2 text-xs">
+                          <span style={{ color: hasEnough ? '#4ade80' : '#f87171' }}>
+                            {materialDef?.emoji} {materialAmount}× {materialDef?.name}
+                          </span>
+                          <span className="text-[#a78bfa]">
+                            +{upgrade.comfortBonus}% conforto
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Apply button */}
+                    {!isApplied && (
+                      <button
+                        onClick={() => handleApplyUpgrade(upgrade)}
+                        disabled={!canApply.canApply}
+                        className="w-full mt-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98]"
+                        style={{
+                          background: canApply.canApply 
+                            ? `linear-gradient(135deg, ${STYLE_VISUALS[upgrade.style].color} 0%, ${STYLE_VISUALS[upgrade.style].color}bb 100%)`
+                            : 'rgba(42, 42, 58, 0.5)',
+                          color: canApply.canApply ? 'white' : '#6a6a7a',
+                          cursor: canApply.canApply ? 'pointer' : 'not-allowed',
+                        }}
+                      >
+                        {canApply.canApply ? 'Aplicar ao Ninho' : canApply.reason || 'Indisponível'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
-      {notification && <FloatingNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+
+      {/* Future hint */}
+      <div 
+        className="rounded-xl p-4 text-center"
+        style={{
+          background: 'rgba(18, 18, 26, 0.4)',
+          border: '1px dashed rgba(42, 42, 58, 0.5)',
+        }}
+      >
+        <p className="text-xs text-[#4a4a5a] italic">
+          O ninho influenciará o futuro de {dragon.dragonName}...
+        </p>
+      </div>
     </div>
   );
 }
